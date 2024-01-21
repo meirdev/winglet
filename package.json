@@ -1,0 +1,32 @@
+{
+  "name": "winglet",
+  "version": "0.1.0",
+  "description": "A web framework for Winglang",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/meirdev/winglet.git"
+  },
+  "keywords": [
+    "winglang",
+    "web",
+    "framework"
+  ],
+  "author": "Meir Elbaz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/meirdev/winglet/issues"
+  },
+  "homepage": "https://github.com/meirdev/winglet#readme",
+  "dependencies": {
+    "busboy": "^1.6.0",
+    "cookie": "^0.6.0",
+    "websocket": "^1.0.34"
+  },
+  "devDependencies": {
+    "@cdktf/provider-aws": "^19.2.0",
+    "cdktf": "^0.20.1"
+  }
+}
