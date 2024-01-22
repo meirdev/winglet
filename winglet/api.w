@@ -8,18 +8,21 @@ bring "./response.w" as response;
 bring "./request.w" as request;
 bring "./router.w" as router;
 bring "./server.w" as server;
+bring "./stream-function.w" as streamFunction;
 
-class I {
-  pub static extern "./aaa.js" simpleStringify(s: Json): str;
+pub struct ApiOptions {
+  stream: bool?;
 }
 
 pub class Api extends router.Router {
   routers: MutArray<router.Router>;
+  stream: bool;
 
-  new() {
+  new(options: ApiOptions?) {
     super();
 
     this.routers = MutArray<router.Router>[];
+    this.stream = options?.stream ?? false;
   }
 
   pub inflight dispatch(req: request.Request): response.Response {
@@ -108,7 +111,7 @@ pub class Api extends router.Router {
   }
 
   pub tfAwsListen(port: num) {
-    let cloudFunction = new cloud.Function(inflight (event: str) => {
+    let getRes = inflight (event: str): response.Response => {
       let eventJson: Json = unsafeCast(event);
 
       let http = eventJson.get("requestContext").get("http");
@@ -124,33 +127,81 @@ pub class Api extends router.Router {
         body,
       );
 
-      let res = this.dispatch(req);
+      return this.dispatch(req);
+    };
 
-      let fn = inflight (res: response.Response) => {
-        let headers = MutMap<str>{};
+    let getMetadata = inflight (res: response.Response): Json => {
+      let headers = MutMap<str>{};
 
-        for key in res.getHeaders().keys() {
-          headers.set(key, res.getHeaders().get(key) ?? "");
-        }
+      for key in res.getHeaders().keys() {
+        headers.set(key, res.getHeaders().get(key) ?? "");
+      }
 
-        return {
-          "statusCode": res.getStatus(),
-          "body": res.getBody(),
-          "headers": Json.parse(Json.stringify(headers)),
-        };
+      let metadata: Json = {
+        statusCode: res.getStatus(),
+        headers: Json.parse(Json.stringify(headers)),
       };
 
-      return unsafeCast(fn(res));
-    });
+      return metadata;
+    };
 
-    let functionName = unsafeCast(std.Node.of(cloudFunction).findChild("Default"))?._functionName;
+    if this.stream {
+      let cloudFunction = new streamFunction.StreamFunction(inflight (event: str, responseStream: streamFunction.IStream) => {
+        let res = getRes(event);
 
-    // log("{Json.stringify(unsafeCast(std.Node.of(cloudFunction).findChild("Default"))?.tryGetContext("memory_size"))}");
-    // log("{unsafeCast(std.Node.of(cloudFunction).findChild("Default"))?._functionName}");
+        let fn = inflight (res: response.Response) => {
+          let stream = streamFunction.HttpResponseStream.httpResponseStreamFrom(responseStream, getMetadata(res));
 
-    new tfaws.lambdaFunctionUrl.LambdaFunctionUrl(
-      functionName: functionName,
-      authorizationType: "NONE",
-    );
+          if let streamFn = res.getStream() {
+            streamFn(unsafeCast(stream));
+          } else {
+            stream.write(res.getBody());
+          }
+
+          stream.end();
+        };
+
+        return unsafeCast(fn(res));
+      });
+
+      let lambdaFunction: tfaws.lambdaFunction.LambdaFunction = unsafeCast(unsafeCast(std.Node.of(cloudFunction).children.at(0))?.function);
+
+      let lambdaFunctionUrl = new tfaws.lambdaFunctionUrl.LambdaFunctionUrl(
+        functionName: lambdaFunction.functionName,
+        authorizationType: "NONE",
+        invokeMode: "RESPONSE_STREAM",
+      );
+
+      new cdktf.TerraformOutput({
+        value: lambdaFunctionUrl.functionUrl,
+      });
+    } else {
+      let cloudFunction = new cloud.Function(inflight (event: str) => {
+        let res = getRes(event);
+
+          let fn = inflight (res: response.Response) => {
+            let var metadata = getMetadata(res);
+
+            return {
+              "statusCode": metadata.get("statusCode"),
+              "headers": metadata.get("headers"),
+              "body": res.getBody(),
+            };
+          };
+
+        return unsafeCast(fn(res));
+      });
+
+      let lambdaFunction: tfaws.lambdaFunction.LambdaFunction = unsafeCast(std.Node.of(cloudFunction).findChild("Default"));
+
+      let lambdaFunctionUrl = new tfaws.lambdaFunctionUrl.LambdaFunctionUrl(
+        functionName: lambdaFunction.functionName,
+        authorizationType: "NONE",
+      );
+
+      new cdktf.TerraformOutput({
+        value: lambdaFunctionUrl.functionUrl,
+      });
+    }
   }
 }

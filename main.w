@@ -22,4 +22,26 @@ api.get("/hi/:name", inflight(req, res) => {
   res.html("<p>{name}</p>");
 });
 
+api.get("/stream", inflight(req, res) => {
+  res.streaming(inflight (stream) => {
+    for i in 0..=10 {
+      stream.write("Progress {i}/10");
+      util.sleep(1s);
+    }
+  });
+});
+
+api.get("/events", inflight(req, res) => {
+  res.sse(inflight(stream) => {
+    for i in 0..10 {
+      stream.write(
+        id: "{i}",
+        event: "ping",
+        data: "Ping #{i}",
+      );
+      util.sleep(1s);
+    }
+  });
+});
+
 api.listen(8080);
