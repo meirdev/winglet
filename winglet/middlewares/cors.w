@@ -15,6 +15,8 @@ pub class Cors impl middleware.IMiddleware {
   options: CorsOptions?;
 
   new(options: CorsOptions?) {
+    std.Node.of(this).hidden = true;
+
     this.options = options;
   }
 

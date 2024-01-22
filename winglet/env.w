@@ -7,6 +7,8 @@ pub class Env {
   pub vars: Map<str>;
 
   new() {
+    std.Node.of(this).hidden = true;
+
     let result = dotenv.Dotenv.preflightConfig();
 
     this.vars = result.parsed;

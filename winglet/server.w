@@ -11,6 +11,8 @@ pub class HttpServer {
   inflight pub server: httpTypes.Server;
 
   new(onRequest: inflight (request.Request, inflight (response.Response): void): void) {
+    std.Node.of(this).hidden = true;
+
     this.onRequest = onRequest;
   }
 
