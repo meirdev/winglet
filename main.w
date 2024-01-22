@@ -5,8 +5,6 @@ bring "./winglet/auth.w" as auth;
 bring "./winglet/env.w" as wingletEnv;
 bring "./winglet/middlewares/cors.w" as corsMiddleware;
 
-let env = new wingletEnv.Env();
-
 let api = new wingletApi.Api(stream: true);
 
 let cors = new corsMiddleware.Cors();
@@ -26,9 +24,9 @@ api.get("/auth/github/callback", inflight(req, res) => {
     log("{code}");
 
     let options = auth.OAuth2ProviderOptions {
-      clientId: env.get("OAUTH_GITHUB_CLIENT_ID"),
-      clientSecret: env.get("OAUTH_GITHUB_CLIENT_SECRET"),
-      redirectUri: env.get("OAUTH_GITHUB_REDIRECT_URI"),
+      clientId: api.env.get("OAUTH_GITHUB_CLIENT_ID"),
+      clientSecret: api.env.get("OAUTH_GITHUB_CLIENT_SECRET"),
+      redirectUri: api.env.get("OAUTH_GITHUB_REDIRECT_URI"),
     };
 
     let github = new auth.Github(options);
@@ -49,9 +47,9 @@ api.get("/auth/meta/callback", inflight(req, res) => {
     log("{code}");
 
     let options = auth.OAuth2ProviderOptions {
-      clientId: env.get("OAUTH_META_CLIENT_ID"),
-      clientSecret: env.get("OAUTH_META_CLIENT_SECRET"),
-      redirectUri: env.get("OAUTH_META_REDIRECT_URI"),
+      clientId: api.env.get("OAUTH_META_CLIENT_ID"),
+      clientSecret: api.env.get("OAUTH_META_CLIENT_SECRET"),
+      redirectUri: api.env.get("OAUTH_META_REDIRECT_URI"),
     };
 
     let meta = new auth.Meta(options);
@@ -68,11 +66,11 @@ api.get("/auth/meta/callback", inflight(req, res) => {
 });
 
 api.get("/login", inflight(req, res) => {
-  res.html("<a href='https://github.com/login/oauth/authorize?client_id={env.get("OAUTH_GITHUB_CLIENT_ID")}&redirect_uri={env.get("OAUTH_GITHUB_REDIRECT_URI")}'>Login with GitHub</a>");
+  res.html("<a href='https://github.com/login/oauth/authorize?client_id={api.env.get("OAUTH_GITHUB_CLIENT_ID")}&redirect_uri={api.env.get("OAUTH_GITHUB_REDIRECT_URI")}'>Login with GitHub</a>");
 });
 
 api.get("/login-meta", inflight(req, res) => {
-  res.html("<a href='https://www.facebook.com/v18.0/dialog/oauth?client_id={env.get("OAUTH_META_CLIENT_ID")}&redirect_uri={env.get("OAUTH_META_REDIRECT_URI")}'>Login with Meta</a>");
+  res.html("<a href='https://www.facebook.com/v18.0/dialog/oauth?client_id={api.env.get("OAUTH_META_CLIENT_ID")}&redirect_uri={api.env.get("OAUTH_META_REDIRECT_URI")}'>Login with Meta</a>");
 });
 
 api.get("/hi/:name", inflight(req, res) => {
