@@ -19,8 +19,7 @@ pub struct ApiOptions {
 pub class Api extends router.Router {
   routers: MutArray<router.Router>;
   stream: bool;
-
-  pub env: env.Env;
+  env: env.Env;
 
   new(options: ApiOptions?) {
     super();
