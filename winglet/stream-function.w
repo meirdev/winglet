@@ -20,10 +20,13 @@ class IFunction {
   new() {
     this._getCodeLines = (handler) => {return MutArray<str>[];};
   }
+
+  pub addEnvironment(name: str, key: str) {
+  }
 }
 
 pub class StreamFunction {
-  fn: IFunction;
+  pub fn: IFunction;
 
   new(handler: inflight (str, IStream): str?) {
     this.fn = unsafeCast(new cloud.Function(unsafeCast(handler)));

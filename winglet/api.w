@@ -4,6 +4,7 @@ bring util;
 bring "cdktf" as cdktf;
 bring "@cdktf/provider-aws" as tfaws;
 
+bring "./env.w" as env;
 bring "./middleware.w" as middleware;
 bring "./response.w" as response;
 bring "./request.w" as request;
@@ -19,11 +20,14 @@ pub class Api extends router.Router {
   routers: MutArray<router.Router>;
   stream: bool;
 
+  pub env: env.Env;
+
   new(options: ApiOptions?) {
     super();
 
     this.routers = MutArray<router.Router>[];
     this.stream = options?.stream ?? false;
+    this.env = new env.Env();
   }
 
   pub inflight dispatch(req: request.Request): response.Response {
@@ -167,6 +171,10 @@ pub class Api extends router.Router {
         return unsafeCast(fn(res));
       });
 
+      for key in this.env.vars.keys() {
+        cloudFunction.fn.addEnvironment(key, this.env.vars.get(key));
+      }
+
       let lambdaFunction: tfaws.lambdaFunction.LambdaFunction = unsafeCast(unsafeCast(std.Node.of(cloudFunction).children.at(0))?.function);
 
       let lambdaFunctionUrl = new tfaws.lambdaFunctionUrl.LambdaFunctionUrl(
@@ -194,6 +202,10 @@ pub class Api extends router.Router {
 
         return unsafeCast(fn(res));
       });
+
+      for key in this.env.vars.keys() {
+        cloudFunction.addEnvironment(key, this.env.vars.get(key));
+      }
 
       let lambdaFunction: tfaws.lambdaFunction.LambdaFunction = unsafeCast(std.Node.of(cloudFunction).findChild("Default"));
 

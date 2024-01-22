@@ -4,12 +4,12 @@ bring util;
 bring "./dotenv.w" as dotenv;
 
 pub class Env {
-  var env: Map<str>;
+  pub vars: Map<str>;
 
   new() {
-    dotenv.Dotenv.preflightConfig();
+    let result = dotenv.Dotenv.preflightConfig();
 
-    this.env = dotenv.Dotenv.env();
+    this.vars = result.parsed;
   }
 
   inflight new() {
