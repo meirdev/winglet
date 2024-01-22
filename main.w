@@ -3,7 +3,7 @@ bring util;
 bring "./winglet/api.w" as wingletApi;
 bring "./winglet/middlewares/cors.w" as corsMiddleware;
 
-let api = new wingletApi.Api();
+let api = new wingletApi.Api(stream: true);
 
 let cors = new corsMiddleware.Cors({});
 
