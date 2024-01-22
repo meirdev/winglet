@@ -36,11 +36,14 @@ pub class StreamFunction {
   protected _getCodeLines(handler: IFunctionHandler): MutArray<str> {
     let inflightClient = unsafeCast(handler)?._toInflight();
     let lines = MutArray<str>[];
+    let client = "$handler";
 
     lines.push("\"use strict\";");
+    lines.push("var {client} = undefined;");
     lines.push("exports.handler = awslambda.streamifyResponse(async (event, responseStream, context) => \{");
-    lines.push("  return await ({inflightClient}).handle(event, responseStream);");
-    lines.push("});");
+    lines.push("  {client} = {client} ?? ({inflightClient});");
+    lines.push("  return await {client}.handle(event, responseStream);");
+    lines.push("});");    
 
     return lines;
   }
