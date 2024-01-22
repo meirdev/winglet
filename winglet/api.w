@@ -103,9 +103,19 @@ pub class Api extends router.Router {
       log("Winglet URL: http://localhost:{port}");
 
       let httpServer = new server.HttpServer(inflight (req, fn) => {
-        let res = this.dispatch(req);
+        try {
+          let res = this.dispatch(req);
 
-        fn(res);
+          fn(res);
+        } catch error {
+          log("{error}");
+
+          let res = new response.Response();
+          res.status(500);
+          res.text(error);
+
+          fn(res);
+        }
       });
 
       new cloud.Service(inflight () => {

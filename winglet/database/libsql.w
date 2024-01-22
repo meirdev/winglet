@@ -1,17 +1,6 @@
 bring http;
 
-pub interface IDataType {
-}
-
-pub struct ColumnType {
-  name: str;
-  decltype: str;
-}
-
-pub struct ColumnValue {
-  type: str;
-  value: IDataType?;
-}
+bring "../database.w" as database;
 
 pub struct Config {
   url: str;
@@ -53,7 +42,7 @@ pub class LibSql_ {
   }
 }
 
-pub class LibSql {
+pub class LibSql impl database.IDatabase {
   config: Config;
 
   var inflight _client: Client?;
@@ -72,7 +61,7 @@ pub class LibSql {
   pub inflight close() {
   }
 
-  pub inflight execute(stmt: str, args: Array<str>?): MutArray<MutMap<IDataType?>> {
+  pub inflight execute(stmt: str, args: Array<str>?): MutArray<MutMap<database.T?>> {
     let response = http.post(
       "{this.config.url}/v2/pipeline",
       headers: {
@@ -94,19 +83,19 @@ pub class LibSql {
       let var result = body.get("results").getAt(0);
 
       if result.get("type") == "error" {
-        throw result.get("error").asStr();
+        throw "error";
       }
 
       if let resultResponse = result.tryGet("response") {
         result = resultResponse.get("result");
 
-        let cols: Array<ColumnType> = unsafeCast(result.get("cols"));
-        let rows: Array<Array<ColumnValue>> = unsafeCast(result.get("rows"));
+        let cols: Array<database.ColumnType> = unsafeCast(result.get("cols"));
+        let rows: Array<Array<database.ColumnValue>> = unsafeCast(result.get("rows"));
 
-        let dataTable = MutArray<MutMap<IDataType?>>[];
+        let dataTable = MutArray<MutMap<database.T?>>[];
 
         for row in 0..rows.length {
-          let rowData = MutMap<IDataType?>{};
+          let rowData = MutMap<database.T?>{};
           for col in 0..cols.length {
             rowData.set(cols.at(col).name, rows.at(row).at(col).value);
           }

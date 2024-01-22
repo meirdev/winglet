@@ -54,15 +54,19 @@ pub class HttpServer {
               }
             }
 
-            serverResponse.writeHead(res.getStatus());
+            try {
+              serverResponse.writeHead(res.getStatus());
 
-            if let streamFn = res.getStream() {
-              streamFn(unsafeCast(serverResponse));
-            } else {
-              serverResponse.write(res.getBody());
+              if let streamFn = res.getStream() {
+                streamFn(unsafeCast(serverResponse));
+              } else {
+                serverResponse.write(res.getBody());
+              }
+
+              serverResponse.end();
+            } catch {
+              serverResponse.end();
             }
-
-            serverResponse.end();
 
             // serverResponse.writeHead(res.getStatus());
             // serverResponse.write(res.getBody());

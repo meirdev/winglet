@@ -1,6 +1,7 @@
 bring util;
 
 bring "./winglet/database/libsql.w" as libsql;
+bring "./winglet/database/pg.w" as pg;
 bring "./winglet/api.w" as wingletApi;
 bring "./winglet/auth.w" as auth;
 bring "./winglet/env.w" as env_;
@@ -11,6 +12,15 @@ let env = new env_.Env();
 let db = new libsql.LibSql(
   url: env.vars.get("TURSO_URL"),
   authToken: env.vars.get("TURSO_TOKEN"),
+);
+
+let dbPg = new pg.PostgreSQL(
+  user: env.vars.get("PG_USER"),
+  password: env.vars.get("PG_PASSWORD"),
+  host: env.vars.get("PG_HOST"),
+  port: env.vars.get("PG_PORT"),
+  database: env.vars.get("PG_DATABASE"),
+  ssl: true,
 );
 
 let api = new wingletApi.Api(stream: true);
@@ -39,6 +49,13 @@ api.get("/insert", inflight (req, res) => {
 
 api.get("/select", inflight (req, res) => {
   let re = db.execute("SELECT * FROM users");
+  res.json(unsafeCast(re));
+});
+
+api.get("/test-pg", inflight (req, res) => {
+  // dbPg.execute("CREATE TABLE users (id SERIAL PRIMARY KEY, name text);");
+  // dbPg.execute("INSERT INTO users (name) VALUES ('meir');");
+  let re = dbPg.execute("SELECT * FROM users");
   res.json(unsafeCast(re));
 });
 
