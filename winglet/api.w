@@ -166,13 +166,15 @@ pub class Api extends router.Router {
 
       let lambdaFunction: tfaws.lambdaFunction.LambdaFunction = unsafeCast(unsafeCast(std.Node.of(cloudFunction).children.at(0))?.function);
 
-      let functionName = unsafeCast(lambdaFunction)?._functionName;
-
-      new tfaws.lambdaFunctionUrl.LambdaFunctionUrl(
-        functionName: functionName,
+      let lambdaFunctionUrl = new tfaws.lambdaFunctionUrl.LambdaFunctionUrl(
+        functionName: lambdaFunction.functionName,
         authorizationType: "NONE",
         invokeMode: "RESPONSE_STREAM",
       );
+
+      new cdktf.TerraformOutput({
+        value: lambdaFunctionUrl.functionUrl,
+      });
     } else {
       let cloudFunction = new cloud.Function(inflight (event: str) => {
         let res = getRes(event);
@@ -192,16 +194,14 @@ pub class Api extends router.Router {
 
       let lambdaFunction: tfaws.lambdaFunction.LambdaFunction = unsafeCast(std.Node.of(cloudFunction).findChild("Default"));
 
-      let functionName = unsafeCast(lambdaFunction)?._functionName;
-
-      new tfaws.lambdaFunctionUrl.LambdaFunctionUrl(
-        functionName: functionName,
+      let lambdaFunctionUrl = new tfaws.lambdaFunctionUrl.LambdaFunctionUrl(
+        functionName: lambdaFunction.functionName,
         authorizationType: "NONE",
       );
-    }
-  }
 
-  getLambdaFunction(resource: std.IResource): tfaws.lambdaFunction.LambdaFunction {
-    return unsafeCast(unsafeCast(std.Node.of(resource).children.at(0))?.function);
+      new cdktf.TerraformOutput({
+        value: lambdaFunctionUrl.functionUrl,
+      });
+    }
   }
 }
