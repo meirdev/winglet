@@ -12,38 +12,38 @@ pub struct CorsOptions {
 }
 
 pub class Cors impl middleware.IMiddleware {
-  options: CorsOptions;
+  options: CorsOptions?;
 
-  new(options: CorsOptions) {
+  new(options: CorsOptions?) {
     this.options = options;
   }
 
   pub inflight handler(req: request.Request, res: response.Response, next: inflight (): void) {
     let var allowOrigin = "*";
 
-    if this.options.allowOrigin? {
-      allowOrigin = "{this.options.allowOrigin}";
+    if this.options?.allowOrigin? {
+      allowOrigin = "{this.options?.allowOrigin}";
     }
 
     res.header("Access-Control-Allow-Origin", allowOrigin);
 
     let var allowMethods = ["GET", "HEAD", "PUT", "POST", "DELETE", "PATCH"].join(", ");
 
-    if this.options.allowMethods? {
-      allowMethods = "{this.options.allowMethods?.join(", ")}";
+    if this.options?.allowMethods? {
+      allowMethods = "{this.options?.allowMethods?.join(", ")}";
     }
 
     res.header("Access-Control-Allow-Methods", allowMethods);
 
-    if let allowHeader = this.options.allowHeaders {
+    if let allowHeader = this.options?.allowHeaders {
       res.header("Access-Control-Allow-Headers", allowHeader.join(", "));
     }
 
-    if let maxAge = this.options.maxAge {
+    if let maxAge = this.options?.maxAge {
       res.header("Access-Control-Max-Age", "{maxAge.seconds}");
     }
 
-    if this.options.allowCredentials? {
+    if this.options?.allowCredentials? {
       res.header("Access-Control-Allow-Credentials", "true");
     }
 
