@@ -145,32 +145,63 @@ pub class Api extends router.Router {
       return metadata;
     };
 
-    let cloudFunction = new streamFunction.StreamFunction(inflight (event: str, responseStream: streamFunction.IStream) => {
-      let res = getRes(event);
+    if this.stream {
+      let cloudFunction = new streamFunction.StreamFunction(inflight (event: str, responseStream: streamFunction.IStream) => {
+        let res = getRes(event);
 
-      let fn = inflight (res: response.Response) => {
-        let stream = streamFunction.HttpResponseStream.httpResponseStreamFrom(responseStream, getMetadata(res));
+        let fn = inflight (res: response.Response) => {
+          let stream = streamFunction.HttpResponseStream.httpResponseStreamFrom(responseStream, getMetadata(res));
 
-        if let streamFn = res.getStream() {
-          streamFn(unsafeCast(stream));
-        } else {
-          stream.write(res.getBody());
-        }
+          if let streamFn = res.getStream() {
+            streamFn(unsafeCast(stream));
+          } else {
+            stream.write(res.getBody());
+          }
 
-        stream.end();
-      };
+          stream.end();
+        };
 
-      return unsafeCast(fn(res));
-    });
+        return unsafeCast(fn(res));
+      });
 
-    let lambdaFunction: tfaws.lambdaFunction.LambdaFunction = unsafeCast(unsafeCast(std.Node.of(cloudFunction).children.at(0))?.function);
+      let lambdaFunction: tfaws.lambdaFunction.LambdaFunction = unsafeCast(unsafeCast(std.Node.of(cloudFunction).children.at(0))?.function);
 
-    let functionName = unsafeCast(lambdaFunction)?._functionName;
+      let functionName = unsafeCast(lambdaFunction)?._functionName;
 
-    new tfaws.lambdaFunctionUrl.LambdaFunctionUrl(
-      functionName: functionName,
-      authorizationType: "NONE",
-      invokeMode: "RESPONSE_STREAM",
-    );
+      new tfaws.lambdaFunctionUrl.LambdaFunctionUrl(
+        functionName: functionName,
+        authorizationType: "NONE",
+        invokeMode: "RESPONSE_STREAM",
+      );
+    } else {
+      let cloudFunction = new cloud.Function(inflight (event: str) => {
+        let res = getRes(event);
+
+          let fn = inflight (res: response.Response) => {
+            let var metadata = getMetadata(res);
+
+            return {
+              "statusCode": metadata.get("statusCode"),
+              "headers": metadata.get("headers"),
+              "body": res.getBody(),
+            };
+          };
+
+        return unsafeCast(fn(res));
+      });
+
+      let lambdaFunction: tfaws.lambdaFunction.LambdaFunction = unsafeCast(std.Node.of(cloudFunction).findChild("Default"));
+
+      let functionName = unsafeCast(lambdaFunction)?._functionName;
+
+      new tfaws.lambdaFunctionUrl.LambdaFunctionUrl(
+        functionName: functionName,
+        authorizationType: "NONE",
+      );
+    }
+  }
+
+  getLambdaFunction(resource: std.IResource): tfaws.lambdaFunction.LambdaFunction {
+    return unsafeCast(unsafeCast(std.Node.of(resource).children.at(0))?.function);
   }
 }
