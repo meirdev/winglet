@@ -1,4 +1,4 @@
-bring "../router.w" as router;
+bring "../middleware.w" as middleware;
 bring "../request.w" as request;
 bring "../response.w" as response;
 
@@ -11,7 +11,7 @@ pub struct CorsOptions {
   allowCredentials: bool?;
 }
 
-pub class Cors impl router.IMiddleware {
+pub class Cors impl middleware.IMiddleware {
   options: CorsOptions;
 
   new(options: CorsOptions) {

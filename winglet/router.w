@@ -1,3 +1,4 @@
+bring "./middleware.w" as middleware;
 bring "./response.w" as response;
 bring "./request.w" as request;
 
@@ -70,29 +71,20 @@ pub struct WsRoute {
   handler: inflight(request.WsRequest, response.WsResponse): void;
 }
 
-pub struct Middleware {
-  path: str;
-  handler: inflight (request.Request, response.Response, inflight (): void): void;
-}
-
-pub interface IMiddleware {
-  inflight handler(req: request.Request, res: response.Response, next: inflight (): void);
-}
-
 pub class Router {
   pub basePath: str;
   pub routes: MutArray<Route>;
   pub wsRoutes: MutArray<WsRoute>;
-  pub middlewares: MutArray<Middleware>;
+  pub middlewares: MutArray<middleware.Middleware>;
 
   new(basePath: str?) {
     this.basePath = basePath ?? "/";
     this.routes = MutArray<Route>[];
     this.wsRoutes = MutArray<WsRoute>[];
-    this.middlewares = MutArray<Middleware>[];
+    this.middlewares = MutArray<middleware.Middleware>[];
   }
 
-  addMiddleware(middleware: Middleware) {
+  addMiddleware(middleware: middleware.Middleware) {
     this.middlewares.push(middleware);
   }
 

@@ -4,6 +4,7 @@ bring util;
 bring "cdktf" as cdktf;
 bring "@cdktf/provider-aws" as tfaws;
 
+bring "./middleware.w" as middleware;
 bring "./response.w" as response;
 bring "./request.w" as request;
 bring "./router.w" as router;
@@ -26,7 +27,7 @@ pub class Api extends router.Router {
   }
 
   pub inflight dispatch(req: request.Request): response.Response {
-    let middlewares = MutArray<router.Middleware>[];
+    let middlewares = MutArray<middleware.Middleware>[];
     let middlewaresParams = MutArray<MutMap<str>>[];
 
     for middleware in this.middlewares {
@@ -96,6 +97,8 @@ pub class Api extends router.Router {
 
   simListen(port: num) {
     if !std.Node.of(this).app.isTestEnvironment {
+      log("Winglet URL: http://localhost:{port}");
+
       let httpServer = new server.HttpServer(inflight (req, fn) => {
         let res = this.dispatch(req);
 
