@@ -8,57 +8,21 @@ bring "./response.w" as response;
 bring "./request.w" as request;
 bring "./router.w" as router;
 bring "./server.w" as server;
+bring "./stream-function.w" as streamFunction;
 
-interface IStream {
-  inflight write(s: str);
-  inflight end(); 
-}
-
-class I {
-  pub static extern "./aaa.js" simpleStringify(s: Json): str;
-  pub static extern "./aaa.js" inflight streamFrom(s: IStream, headers: Json): IStream;
-}
-
-interface IFunctionHandler {
-}
-
-class A {
-  pub var _getCodeLines: (IFunctionHandler): MutArray<str>;
-
-  new() {
-    this._getCodeLines = (a) => {return MutArray<str>[];};
-  }
-}
-
-class StreamFunction {
-  fn: A;
-
-  new(handler: inflight (str, IStream): str?) {
-    let h: (inflight (str): str?) = unsafeCast(handler);
-    this.fn = unsafeCast(new cloud.Function(h));
-    this.fn._getCodeLines = this._getCodeLines22;
-  }
-
-  protected _getCodeLines22(handler: IFunctionHandler): MutArray<str> {
-    let inflightClient = unsafeCast(handler)?._toInflight();
-    let lines = MutArray<str>[];
-
-    lines.push("\"use strict\";");
-    lines.push("exports.handler = awslambda.streamifyResponse(async (event, responseStream, context) => \{");
-    lines.push("  return await ({inflightClient}).handle(event, responseStream);");
-    lines.push("});");
-
-    return lines;
-  }
+pub struct ApiOptions {
+  stream: bool?;
 }
 
 pub class Api extends router.Router {
   routers: MutArray<router.Router>;
+  stream: bool;
 
-  new() {
+  new(options: ApiOptions?) {
     super();
 
     this.routers = MutArray<router.Router>[];
+    this.stream = options?.stream ?? false;
   }
 
   pub inflight dispatch(req: request.Request): response.Response {
@@ -147,7 +111,7 @@ pub class Api extends router.Router {
   }
 
   pub tfAwsListen(port: num) {
-    let cloudFunction = new StreamFunction(inflight (event: str, responseStream: IStream) => {
+    let cloudFunction = new streamFunction.StreamFunction(inflight (event: str, responseStream: streamFunction.IStream) => {
       let eventJson: Json = unsafeCast(event);
 
       let http = eventJson.get("requestContext").get("http");
@@ -185,7 +149,7 @@ pub class Api extends router.Router {
     });
 
     let lambdaFunction: tfaws.lambdaFunction.LambdaFunction = unsafeCast(unsafeCast(std.Node.of(cloudFunction).children.at(0))?.function);
-    
+
     let functionName = unsafeCast(lambdaFunction)?._functionName;
 
     new tfaws.lambdaFunctionUrl.LambdaFunctionUrl(
