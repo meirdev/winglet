@@ -14,6 +14,7 @@ bring "./stream-function.w" as streamFunction;
 
 pub struct ApiOptions {
   stream: bool?;
+  testingMode: bool?;
 }
 
 pub class Api extends router.Router {
@@ -21,12 +22,20 @@ pub class Api extends router.Router {
   stream: bool;
   env: env.Env;
 
+  testingMode: bool;
+
   new(options: ApiOptions?) {
     super();
 
     this.routers = MutArray<router.Router>[];
     this.stream = options?.stream ?? false;
     this.env = new env.Env();
+
+    try {
+      this.testingMode = util.env("TESTING_MODE") == "y";
+    } catch {
+      this.testingMode = false;
+    }
   }
 
   pub inflight dispatch(req: request.Request): response.Response {
@@ -46,6 +55,10 @@ pub class Api extends router.Router {
     let var theRouteParams: MutMap<str>? = nil;
 
     for route in this.routes {
+      if route.method != req.method() {
+        continue;
+      }
+
       let pattern = new router.Pattern(this.basePath + route.path);
 
       if let params = pattern.match(req.path()) {
@@ -99,7 +112,7 @@ pub class Api extends router.Router {
   }
 
   simListen(port: num) {
-    if !std.Node.of(this).app.isTestEnvironment {
+    if this.testingMode || !std.Node.of(this).app.isTestEnvironment {
       log("Winglet URL: http://localhost:{port}");
 
       let httpServer = new server.HttpServer(inflight (req, fn) => {

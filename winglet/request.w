@@ -3,6 +3,9 @@ bring "./cookie.w" as cookie;
 bring "./multimap.w" as multimap;
 bring "./url.w" as url;
 
+pub struct File extends busboy.File {
+}
+
 pub inflight class Request {
   var inflight _method: str;
   var inflight _path: str;
@@ -90,7 +93,7 @@ pub inflight class Request {
   pub inflight cookies(): multimap.MultiMap {
     let ret = new multimap.MultiMap();
 
-    if let cookies = this._headers.getAll("Cookie") {
+    if let cookies = this._headers.getAll("cookie") {
       for value in cookies {
         let cookies = cookie.Cookie.parse(value);
         for name in cookies.keys() {
