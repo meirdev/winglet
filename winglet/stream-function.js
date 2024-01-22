@@ -1,1 +1,1 @@
-exports.httpResponseStream.from = awslambda.HttpResponseStream.from;
+exports.httpResponseStreamFrom = awslambda.HttpResponseStream.from;

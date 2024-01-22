@@ -5,8 +5,8 @@ pub interface IStream {
   inflight end(); 
 }
 
-class HttpResponseStream {
-  pub static extern "./stream-function.js" inflight httpResponseStream(stream: IStream, headers: Json): IStream;
+pub class HttpResponseStream {
+  pub static extern "./stream-function.js" inflight httpResponseStreamFrom(stream: IStream, headers: Json): IStream;
 }
 
 interface IFunctionHandler {

@@ -111,7 +111,7 @@ pub class Api extends router.Router {
   }
 
   pub tfAwsListen(port: num) {
-    let cloudFunction = new streamFunction.StreamFunction(inflight (event: str, responseStream: streamFunction.IStream) => {
+    let getRes = inflight (event: str): response.Response => {
       let eventJson: Json = unsafeCast(event);
 
       let http = eventJson.get("requestContext").get("http");
@@ -127,22 +127,37 @@ pub class Api extends router.Router {
         body,
       );
 
-      let res = this.dispatch(req);
+      return this.dispatch(req);
+    };
+
+    let getMetadata = inflight (res: response.Response): Json => {
+      let headers = MutMap<str>{};
+
+      for key in res.getHeaders().keys() {
+        headers.set(key, res.getHeaders().get(key) ?? "");
+      }
+
+      let metadata: Json = {
+        statusCode: res.getStatus(),
+        headers: Json.parse(Json.stringify(headers)),
+      };
+
+      return metadata;
+    };
+
+    let cloudFunction = new streamFunction.StreamFunction(inflight (event: str, responseStream: streamFunction.IStream) => {
+      let res = getRes(event);
 
       let fn = inflight (res: response.Response) => {
-        let headers = MutMap<str>{};
-
-        for key in res.getHeaders().keys() {
-          headers.set(key, res.getHeaders().get(key) ?? "");
-        }
+        let stream = streamFunction.HttpResponseStream.httpResponseStreamFrom(responseStream, getMetadata(res));
 
         if let streamFn = res.getStream() {
-          streamFn(unsafeCast(responseStream));
+          streamFn(unsafeCast(stream));
         } else {
-          responseStream.write(res.getBody());
+          stream.write(res.getBody());
         }
 
-        responseStream.end();
+        stream.end();
       };
 
       return unsafeCast(fn(res));
