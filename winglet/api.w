@@ -9,8 +9,47 @@ bring "./request.w" as request;
 bring "./router.w" as router;
 bring "./server.w" as server;
 
+interface IStream {
+  inflight write(s: str);
+  inflight end(); 
+}
+
 class I {
   pub static extern "./aaa.js" simpleStringify(s: Json): str;
+  pub static extern "./aaa.js" inflight streamFrom(s: IStream, headers: Json): IStream;
+}
+
+interface IFunctionHandler {
+}
+
+class A {
+  pub var _getCodeLines: (IFunctionHandler): MutArray<str>;
+
+  new() {
+    this._getCodeLines = (a) => {return MutArray<str>[];};
+  }
+}
+
+class StreamFunction {
+  fn: A;
+
+  new(handler: inflight (str, IStream): str?) {
+    let h: (inflight (str): str?) = unsafeCast(handler);
+    this.fn = unsafeCast(new cloud.Function(h));
+    this.fn._getCodeLines = this._getCodeLines22;
+  }
+
+  protected _getCodeLines22(handler: IFunctionHandler): MutArray<str> {
+    let inflightClient = unsafeCast(handler)?._toInflight();
+    let lines = MutArray<str>[];
+
+    lines.push("\"use strict\";");
+    lines.push("exports.handler = awslambda.streamifyResponse(async (event, responseStream, context) => \{");
+    lines.push("  return await ({inflightClient}).handle(event, responseStream);");
+    lines.push("});");
+
+    return lines;
+  }
 }
 
 pub class Api extends router.Router {
@@ -108,7 +147,7 @@ pub class Api extends router.Router {
   }
 
   pub tfAwsListen(port: num) {
-    let cloudFunction = new cloud.Function(inflight (event: str) => {
+    let cloudFunction = new StreamFunction(inflight (event: str, responseStream: IStream) => {
       let eventJson: Json = unsafeCast(event);
 
       let http = eventJson.get("requestContext").get("http");
@@ -133,24 +172,26 @@ pub class Api extends router.Router {
           headers.set(key, res.getHeaders().get(key) ?? "");
         }
 
-        return {
-          "statusCode": res.getStatus(),
-          "body": res.getBody(),
-          "headers": Json.parse(Json.stringify(headers)),
-        };
+        if let streamFn = res.getStream() {
+          streamFn(unsafeCast(responseStream));
+        } else {
+          responseStream.write(res.getBody());
+        }
+
+        responseStream.end();
       };
 
       return unsafeCast(fn(res));
     });
 
-    let functionName = unsafeCast(std.Node.of(cloudFunction).findChild("Default"))?._functionName;
-
-    // log("{Json.stringify(unsafeCast(std.Node.of(cloudFunction).findChild("Default"))?.tryGetContext("memory_size"))}");
-    // log("{unsafeCast(std.Node.of(cloudFunction).findChild("Default"))?._functionName}");
+    let lambdaFunction: tfaws.lambdaFunction.LambdaFunction = unsafeCast(unsafeCast(std.Node.of(cloudFunction).children.at(0))?.function);
+    
+    let functionName = unsafeCast(lambdaFunction)?._functionName;
 
     new tfaws.lambdaFunctionUrl.LambdaFunctionUrl(
       functionName: functionName,
       authorizationType: "NONE",
+      invokeMode: "RESPONSE_STREAM",
     );
   }
 }
