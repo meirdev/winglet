@@ -29,5 +29,9 @@
   "devDependencies": {
     "@cdktf/provider-aws": "^19.2.0",
     "cdktf": "^0.20.1"
+  },
+  "optionalDependencies": {
+    "@libsql/client": "^0.4.0-pre.7",
+    "pg": "^8.11.3"
   }
 }
