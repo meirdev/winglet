@@ -23,6 +23,8 @@ pub inflight class Request {
   pub inflight queries(): multimap.MultiMap {
     let ret = new multimap.MultiMap();
 
+    log("path: {this._path}");
+
     let url_ = url.Url.url("http://0.0.0.0{this._path}");
 
     for name in url_.searchParams.keys() {
@@ -30,6 +32,8 @@ pub inflight class Request {
         ret.append(name, value);
       }
     }
+
+    log("ret: {ret}");
 
     return ret;
   }
@@ -74,7 +78,9 @@ pub inflight class Request {
   }
 
   pub inflight path(): str {
-    return this._path;
+    let url_ = url.Url.url("http://0.0.0.0{this._path}");
+
+    return url_.pathname;
   }
 
   pub inflight method(): str {

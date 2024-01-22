@@ -29,5 +29,4 @@ pub inflight class URL_ {
 pub class Url {
   pub static extern "./url.js" inflight url(input: str): URL_;
   pub static extern "./url.js" inflight urlSearchParams(params: Json): URLSearchParams;
-  pub static extern "./url.js" inflight urlSearchParamsFromStr(params: str): URLSearchParams;
 }
