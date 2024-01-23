@@ -156,6 +156,12 @@ pub class Api extends router.Router {
         body,
       );
 
+      let headers_: Map<str> = unsafeCast(eventJson.get("headers"));
+
+      for name in headers_.keys() {
+        req.headers().append(name, headers_.get(name));
+      }
+
       return this.dispatch(req);
     };
 
