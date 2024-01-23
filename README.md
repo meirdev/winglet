@@ -118,6 +118,14 @@ api.listen(8080);
 * [HTTP streaming](./example_streaming.main.w)
 * [SSE](./example_sse.main.w)
 
+## Tests
+
+To run tests, you need to add the environment variable `TESTING_MODE=y` before running them:
+
+```bash
+TESTING_MODE=y wing test example_query_string.main.w
+```
+
 ## Roadmap
 
 * Stability.
