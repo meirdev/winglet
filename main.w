@@ -90,4 +90,44 @@ api.get("/p/me", inflight (req, res) => {
   res.json(unsafeCast(user.at(0)));
 });
 
+api.put("/p/me", inflight (req, res) => {
+  let user_: Json = req.context.get("user");
+
+  let data = req.json();
+
+  let user = db.execute("UPDATE users SET name = $1, bio = $2, link = $3 WHERE id = $4 RETURNING *", [
+    unsafeCast(data.get("name").asStr()),
+    unsafeCast(data.get("bio").asStr()),
+    unsafeCast(data.get("link").asStr()),
+    unsafeCast(user_.get("_userId")),
+  ]);
+
+  res.json(unsafeCast(user.at(0)));
+});
+
+api.get("/p/users/:username/threads", inflight (req, res) => {
+  let user_: Json = req.context.get("user");
+
+  let threads = db.execute("SELECT posts.* FROM posts LEFT JOIN users ON posts.user = users.id WHERE posts.type = $1 AND users.username = $2", [
+    unsafeCast("thread"),
+    unsafeCast(req.params.get("username")),
+  ]);
+
+  res.json(unsafeCast(threads));
+});
+
+api.post("/p/posts", inflight (req, res) => {
+  let user_: Json = req.context.get("user");
+
+  let data = req.json();
+
+  let post = db.execute("INSERT INTO posts (\"user\", content, type) VALUES ($1, $2, $3)", [
+    unsafeCast(user_.get("_userId")),
+    unsafeCast(data.get("content").asStr()),
+    unsafeCast(data.get("type").asStr()),
+  ]);
+
+  res.json(unsafeCast(post));
+});
+
 api.listen(8080);
