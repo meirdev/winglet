@@ -1,7 +1,7 @@
 # Winglet
 
-<div style="text-align: center">
-  <img src="./assets/logo.svg" style="height: 300px;" />
+<div align="center">
+  <img src="./assets/logo.svg" height="300" />
   <br />
   <br />
   <p><i>A lightweight web framework designed for simplicity and minimal dependencies</i></p>
