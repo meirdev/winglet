@@ -1,5 +1,6 @@
-bring "./formdata.w" as formdata;
+// bring "./context.w" as context;
 bring "./cookie.w" as cookie;
+bring "./formdata.w" as formdata;
 bring "./multimap.w" as multimap;
 bring "./url.w" as url;
 
@@ -13,6 +14,7 @@ pub inflight class Request {
   var inflight _headers: multimap.MultiMap;
 
   pub var inflight params: MutMap<str>;
+  pub var inflight context: MutMap<str>;
 
   new(method: str, path: str, body: str) {
     this._method = method;
@@ -21,6 +23,7 @@ pub inflight class Request {
     this._headers = new multimap.MultiMap();
 
     this.params = MutMap<str>{};
+    this.context = MutMap<str>{};
   }
 
   pub inflight queries(): multimap.MultiMap {
