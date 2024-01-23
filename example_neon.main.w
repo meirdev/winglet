@@ -1,3 +1,5 @@
+// You need to install the `pg` library before using: `npm i pg`
+
 bring cloud;
 bring http;
 bring math;
