@@ -8,10 +8,10 @@ pub struct Config {
   tls: bool?;
 }
 
-pub interface Client {
-  inflight close();
-  inflight execute(stmt: str, args: Array<str>?): Json;
-}
+// pub interface Client {
+//   inflight close();
+//   inflight execute(stmt: str, args: Array<str>?): Json;
+// }
 
 // pub class LibSql_ {
 //   // ERROR: "cannot be used within bundled cloud functions"
@@ -45,14 +45,8 @@ pub interface Client {
 pub class LibSql impl database.IDatabase {
   config: Config;
 
-  var inflight _client: Client?;
-
   new(config: Config) {
     this.config = config;
-  }
-
-  inflight new() {
-    this._client = nil;
   }
 
   pub inflight connect() {

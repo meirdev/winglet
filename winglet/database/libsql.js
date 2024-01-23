@@ -1,3 +1,5 @@
-const client = require("@libsql/client");
+// npm i @libsql/client
 
-exports.client = client.createClient;
+// const client = require("@libsql/client");
+
+// exports.client = client.createClient;
