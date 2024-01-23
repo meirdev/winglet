@@ -9,7 +9,7 @@ function tempfile() {
   return join(realpathSync(tmpdir()), randomUUID());
 }
 
-function Busboy(headers, body) {
+function FormData(headers, body) {
   return new Promise((resolve, reject) => {
     const formData = {};
 
@@ -60,4 +60,4 @@ function Busboy(headers, body) {
   });
 }
 
-exports.busboy = Busboy;
+exports.formdata = FormData;

@@ -2,7 +2,7 @@
 
 _A lightweight web framework designed for simplicity and minimal dependencies_
 
-## Counter (Wing + Winglet + Turso)
+## Counter (Winglet + Turso)
 
 ```wing
 bring http;
@@ -101,6 +101,7 @@ api.listen(8080);
 * [Return JSON](./example_return_json.main.w)
 * [Read POST](./example_read_post.main.w)
 * [Read path paramaters](./example_path_parameter.main.w)
+* [Read query string](./example_query_string.main.w)
 * [Use environment variables](./example_env.main.w)
 * [CORS](./example_cors.main.w)
 * [Custom middleware](./example_middleware.main.w)

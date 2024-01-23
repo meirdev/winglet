@@ -1,9 +1,9 @@
-bring "./busboy.w" as busboy;
+bring "./formdata.w" as formdata;
 bring "./cookie.w" as cookie;
 bring "./multimap.w" as multimap;
 bring "./url.w" as url;
 
-pub struct File extends busboy.File {
+pub struct File extends formdata.File {
 }
 
 pub inflight class Request {
@@ -26,8 +26,6 @@ pub inflight class Request {
   pub inflight queries(): multimap.MultiMap {
     let ret = new multimap.MultiMap();
 
-    log("path: {this._path}");
-
     let url_ = url.Url.url("http://0.0.0.0{this._path}");
 
     for name in url_.searchParams.keys() {
@@ -35,8 +33,6 @@ pub inflight class Request {
         ret.append(name, value);
       }
     }
-
-    log("ret: {ret}");
 
     return ret;
   }
@@ -57,7 +53,7 @@ pub inflight class Request {
 
     let ret = new multimap.MultiMap();
 
-    let formData = busboy.Busboy.busboy(unsafeCast(headers), this._body);
+    let formData = formdata.FormData.formdata(unsafeCast(headers), this._body);
 
     for field in formData.keys() {
       for value in formData.get(field) {

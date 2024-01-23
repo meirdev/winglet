@@ -11,8 +11,6 @@ pub inflight class Stream {
 
 pub inflight class StreamSSE extends Stream {
   pub inflight static writeTest(data: Event?): str {
-    log("fadasdasd {data}");
-
     let var dataStr = "";
 
     if data?.id? {
@@ -29,8 +27,6 @@ pub inflight class StreamSSE extends Stream {
   }
 
   pub inflight write(data: Event?) {
-    log("fadasdasd {data}");
-
     let var dataStr = "";
 
     if data?.id? {
