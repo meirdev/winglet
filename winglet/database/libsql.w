@@ -13,34 +13,34 @@ pub interface Client {
   inflight execute(stmt: str, args: Array<str>?): Json;
 }
 
-pub class LibSql_ {
-  // ERROR: "cannot be used within bundled cloud functions"
-  static extern "./libSql.js" inflight client(config: Config): Client;
+// pub class LibSql_ {
+//   // ERROR: "cannot be used within bundled cloud functions"
+//   static extern "./libSql.js" inflight client(config: Config): Client;
 
-  config: Config;
+//   config: Config;
 
-  var inflight _client: Client?;
+//   var inflight _client: Client?;
 
-  new(config: Config) {
-    this.config = config;
-  }
+//   new(config: Config) {
+//     this.config = config;
+//   }
 
-  inflight new() {
-    this._client = nil;
-  }
+//   inflight new() {
+//     this._client = nil;
+//   }
 
-  pub inflight connect() {
-    this._client = LibSql_.client(this.config);
-  }
+//   pub inflight connect() {
+//     this._client = LibSql_.client(this.config);
+//   }
 
-  pub inflight close() {
-    this._client?.close();
-  }
+//   pub inflight close() {
+//     this._client?.close();
+//   }
 
-  pub inflight execute(stmt: str, args: Array<str>?): Json {
-    return this._client?.execute(stmt, args);
-  }
-}
+//   pub inflight execute(stmt: str, args: Array<str>?): Json {
+//     return this._client?.execute(stmt, args);
+//   }
+// }
 
 pub class LibSql impl database.IDatabase {
   config: Config;
@@ -61,7 +61,7 @@ pub class LibSql impl database.IDatabase {
   pub inflight close() {
   }
 
-  pub inflight execute(stmt: str, args: Array<str>?): MutArray<MutMap<database.T?>> {
+  pub inflight execute(stmt: str, args: Array<database.T>?): MutArray<MutMap<database.T?>> {
     let response = http.post(
       "{this.config.url}/v2/pipeline",
       headers: {

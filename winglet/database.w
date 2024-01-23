@@ -14,5 +14,5 @@ pub struct ColumnValue {
 pub interface IDatabase {
   inflight connect();
   inflight close();
-  inflight execute(stmt: str, args: Array<str>?): MutArray<MutMap<T?>>;
+  inflight execute(stmt: str, args: Array<T>?): MutArray<MutMap<T?>>;
 }
