@@ -1,5 +1,6 @@
 bring fs;
 
+bring "./cookie.w" as cookie;
 bring "./multimap.w" as multimap;
 bring "./stream.w" as stream;
 
@@ -20,7 +21,7 @@ struct RedirectOptions {
   status: num?;
 }
 
-struct CookieOptions {
+struct CookieOptions extends cookie.CookieOptions {
 }
 
 pub inflight class Response {
@@ -119,7 +120,7 @@ pub inflight class Response {
   }
 
   pub inflight cookie(name: str, value: str?, options: CookieOptions?) {
-    this._headers.set("Set-Cookie", "{name}={value}");
+    this._headers.set("Set-Cookie", cookie.Cookie.serialize(name, value ?? "", options));
   }
 
   pub inflight streaming(stream: inflight (stream.Stream): void) {
