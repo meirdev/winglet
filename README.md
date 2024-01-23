@@ -1,182 +1,116 @@
 # Winglet
 
-A web framework for Winglang.
+_A lightweight web framework designed for simplicity and minimal dependencies_
 
-## Examples
-
-### Return JSON
+## Counter (Wing + Winglet + Turso)
 
 ```wing
-bring "winglet" as winglet;
+bring http;
 
-let api = winglet.Api();
+bring "./winglet/api.w" as api_;
+bring "./winglet/database/libsql.w" as libsql;
+bring "./winglet/env.w" as env_;
 
-api.get("/", inflight(req, res) => {
-  res.json({
-    "hello": "world",
-  });
-});
-```
+let api = new api_.Api();
 
-### Path parameters
+let env = new env_.Env();
 
-```wing
-bring "winglet" as winglet;
+class Counter {
+  var db: libsql.LibSql;
 
-let api = winglet.Api();
+  new() {
+    this.db = new libsql.LibSql(
+      url: env.vars.get("TURSO_URL"),
+      authToken: env.vars.get("TURSO_TOKEN"),
+    );
+  }
 
-api.get("/users/:userId", inflight(req, res) => {
-  let userId = req.params.get("userId");
+  inflight new() {
+    this.db.execute("{""}
+    CREATE TABLE IF NOT EXISTS counter (
+      id TEXT PRIMARY KEY,
+      value INTEGER
+    );
+    ");
 
-  res.text("User #{userId}");
-});
-```
+    this.db.execute("INSERT OR REPLACE INTO counter (id, value) VALUES ('{this.node.id}', 0);");
+  }
 
-### Read POST
+  pub inflight inc() {
+    this.db.execute("UPDATE counter SET value = value + 1");
+  }
 
-```wing
-bring "winglet" as winglet;
+  pub inflight dec() {
+    this.db.execute("UPDATE counter SET value = value - 1");
+  }
 
-let api = winglet.Api();
+  pub inflight set(value: num) {
+    this.db.execute("UPDATE counter SET value = 0");
+  }
 
-api.get("/greet", inflight(req, res) => {
-  let fullName = req.form().get("full_name");
+  pub inflight peek(): str {
+    let result: Array<Json> = unsafeCast(this.db.execute("SELECT * FROM counter"));
+    return result.at(0).get("value").asStr();
+  }
+}
 
-  res.html("<h1>Hello {fullName}</h1>");
-});
+let counter = new Counter();
 
-api.get("/", inflight(req, res) => {
-  res.html(
-    "<form action='/greet' method='POST'>" +
-    "<label>Enter your name:</label>" +
-    "<input type='text' name='full_name' />" +
-    "<br />" +
-    "<input type='submit' value='Send' />" +
-    "</form>"
-  );
-});
-```
-
-### File Upload
-
-```wing
-bring "winglet" as winglet;
-
-let api = new wingletApi.Api();
-
-api.get("/upload", inflight(req, res) => {
-  let file: wingletBusboy.File = unsafeCast(req.form().get("upload"));
-
-  res.html("File name: {file.name}, size: {file.size}, mimetype: {file.mimetype}, tmp path: {file.path}");
+api.get("/peek", inflight (req, res) => {
+  res.html("{counter.peek()}");
 });
 
-api.get("/", inflight(req, res) => {
-  res.html(
-    "<form action='/upload' method='POST' enctype='multipart/form-data'>" +
-    "<label>Select file:</label>" +
-    "<input type='file' name='upload' />" +
-    "<br />" +
-    "<input type='submit' value='Send' />" +
-    "</form>"
-  );
-});
-```
-
-### Middleware
-
-```wing
-
-```
-
-### Streaming
-
-```wing
-bring util;
-
-bring "./winglet/api.w" as wingletApi;
-
-let api = new wingletApi.Api();
-
-api.get("/stream", inflight(req, res) => {
-  res.streaming(inflight(stream) => {
-    for i in 0..=10 {
-      stream.write("Progress {i}/10");
-      util.sleep(1s);
-    }
-  });
+api.post("/inc", inflight (req, res) => {
+  counter.inc();
+  res.status(200);
 });
 
-api.get("/", inflight(req, res) => {
-  res.html(
-    "<html>" +
-    "<head>" +
-    "<script>" +
-    "async function getStream() \{" +
-    "const progress = document.getElementById('progress');" +
-    "const response = await fetch('/stream');" +
-    "const reader = response.body.getReader();" +
-    "reader.read().then(function pump(\{ done, value \}) \{" +
-    "if (done) \{return;\}" +
-    "const decoder = new TextDecoder();" + 
-    "progress.textContent = decoder.decode(value);" + 
-    "return reader.read().then(pump);" +
-    "\}" +
-    ");" +
-    "\}" +
-    "</script>" +
-    "</head>" +
-    "<body>" +
-    "<div id='progress'></div>" +
-    "<script>" +
-    "getStream();" +
-    "</script>" +
-    "</body>" +
-    "</html>"
-  );
-});
-```
-
-### SSE
-
-```wing
-bring "winglet" as winglet;
-
-api = winglet.Api();
-
-api.get("/events", inflight(req, res) => {
-  req.sse(inflight(stream) => {
-    for i in 0..10 {
-      stream.write(
-        id: "{i}",
-        event: "ping",
-        data: "Ping #{i}",
-      );
-    }
-  });
+api.post("/dec", inflight (req, res) => {
+  counter.dec();
+  res.status(200);
 });
 
-api.get("/", inflight(req, res) => {
-  res.html("
+api.post("/reset", inflight (req, res) => {
+  counter.set(0);
+  res.status(200);
+});
+
+api.get("/", inflight (req, res) => {
+  res.html("{""}
   <html>
     <head>
-    <script>
-    const eventSource = new EventSource('/events');
-
-    eventSource.addEventListener('ping', (event) => \{
-      const newElement = document.createElement('li');
-      const eventList = document.getElementById('list');
-      newElement.textContent = event.data;
-      eventList.appendChild(newElement);
-    \});
-    </script>
+      <title>Counter</title>
+      <script src='https://unpkg.com/htmx.org@1.9.10' crossorigin='anonymous'></script>
     </head>
     <body>
-      <ul id='list'></ul>
+      <div id='value' hx-get='/peek' hx-trigger='htmx:afterRequest from:#control'></div>
+      <div id='control'>
+        <button hx-post='/inc' hx-swap='none'>+</button>
+        <button hx-post='/dec' hx-swap='none'>-</button>
+      </div>
     </body>
   </html>
   ");
 });
+
+api.listen(8080);
 ```
+
+## Examples
+
+* [Return JSON](./example_return_json.main.w)
+* [Read POST](./example_read_post.main.w)
+* [Read path paramaters](./example_path_parameter.main.w)
+* [Use environment variables](./example_env.main.w)
+* [CORS](./example_cors.main.w)
+* [Custom middleware](./example_middleware.main.w)
+* [File upload](./example_file_upload.main.w)
+* [Auth with GitHub](./example_auth_github.main.w)
+* [Auth with Facebook](./example_auth_meta.main.w)
+* [Turso database](./example_turso.main.w)
+* [Neon database](./example_neon.main.w)
+* [HTTP streaming](./example_streaming.main.w)
+* [SSE](./example_sse.main.w)
 
 ## Roadmap
 
