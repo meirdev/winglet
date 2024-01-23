@@ -122,14 +122,41 @@ pub inflight class Response {
     this._headers.set("Set-Cookie", "{name}={value}");
   }
 
-  pub inflight streaming(stream: inflight(stream.Stream): void) {
+  pub inflight streaming(stream: inflight (stream.Stream): void) {
     this._stream = stream;
   }
 
-  pub inflight sse(events: inflight(stream.StreamSSE): void) {
+  pub inflight sse(events: inflight (stream.StreamSSE): void) {
     this._headers.set("Content-Type", "text/event-stream");
 
-    this.streaming(unsafeCast(events));
+    inflight class Wrapper {
+      inflight var stream_: stream.Stream;
+
+      inflight new(stream_: stream.Stream) {
+        this.stream_ = stream_;
+      }
+
+      pub inflight write(data: stream.Event) {
+        let var dataStr = "";
+
+        if data?.id? {
+          dataStr += "id: {data?.id}\n";
+        }
+
+        if data?.event? {
+          dataStr += "event: {data?.event}\n";
+        }
+
+        dataStr += "data: {data?.data}\n\n";
+
+        this.stream_.write(dataStr);
+      }
+    }
+
+    this.streaming(inflight (stream) => {
+      let wrap = new Wrapper(stream);
+      events(unsafeCast(wrap));
+    });
   }
 }
 

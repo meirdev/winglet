@@ -30,13 +30,11 @@ api.get("/", inflight (req, res) => {
 
 api.get("/events", inflight (req, res) => {
   res.sse(inflight (stream) => {
-    for i in 0..5 {
+    for i in 1..=5 {
       stream.write(
-        stream_.StreamSSE.writeTest(
-          id: "{i}",
-          event: "ping",
-          data: "Ping #{i}",
-        )
+        id: "{i}",
+        event: "ping",
+        data: "Ping #{i}",
       );
       util.sleep(1s);
     }
@@ -48,7 +46,7 @@ api.listen(8080);
 test "example" {
   let response = http.get("http://localhost:8080/events");
 
-  for i in 0..=5 {
+  for i in 1..=5 {
     let s = "Ping #{i}";
     assert(response.body.contains(s));
   }

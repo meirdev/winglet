@@ -6,7 +6,7 @@ bring "./winglet/api.w" as api_;
 let USERNAME = "meir";
 let PASSWORD = "123456";
 
-let api = new api_.Api(stream: true);
+let api = new api_.Api();
 
 api.use("*", inflight (req, res, next) => {
   next();
