@@ -1,5 +1,7 @@
 # Winglet
 
+![Winglet](./assets/logo.png)
+
 _A lightweight web framework designed for simplicity and minimal dependencies_
 
 ## Counter (Winglet + Turso)
