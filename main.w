@@ -1,20 +1,18 @@
-bring util;
+bring cloud;
+bring http;
+bring math;
 
-bring "./winglet/database/libsql.w" as libsql;
-bring "./winglet/database/pg.w" as pg;
-bring "./winglet/api.w" as wingletApi;
+bring "./winglet/api.w" as api_;
 bring "./winglet/auth.w" as auth;
+bring "./winglet/jwt.w" as jwt;
+bring "./winglet/database/pg.w" as pg;
 bring "./winglet/env.w" as env_;
-bring "./winglet/middlewares/cors.w" as corsMiddleware;
 
 let env = new env_.Env();
 
-let db = new libsql.LibSql(
-  url: env.vars.get("TURSO_URL"),
-  authToken: env.vars.get("TURSO_TOKEN"),
-);
+let api = new api_.Api();
 
-let dbPg = new pg.PostgreSQL(
+let db = new pg.PostgreSQL(
   user: env.vars.get("PG_USER"),
   password: env.vars.get("PG_PASSWORD"),
   host: env.vars.get("PG_HOST"),
@@ -23,52 +21,30 @@ let dbPg = new pg.PostgreSQL(
   ssl: true,
 );
 
-let api = new wingletApi.Api(stream: true);
+api.use("/p/*", inflight (req, res, next) => {
+  try {
+    let token = req.cookies().get("token");
+    let value = jwt.jwt.verify(token ?? "", env.get("JWT_SECRET"));
 
-let cors = new corsMiddleware.Cors();
+    req.context.set("user", unsafeCast(value));
 
-api.use("*", inflight (req, res, next) => {
-  cors.handler(req, res, next);
+    next();
+  } catch e {
+    res.status(403);
+    res.text(e);
+  }
 });
 
-api.get("/createtable", inflight (req, res) => {
-  db.connect();
-  db.execute("CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name text);");
-  // db.execute("DROP TABLE users;");
-  db.close();
-  res.text("dfdsfs");
+api.get("/", inflight (req, res) => {
+  res.html("Hello");
 });
 
-api.get("/insert", inflight (req, res) => {
-  db.connect();
-  let re = db.execute("INSERT INTO users (name) VALUES ('meir');");
-  log("{re}");
-  db.close();
-  res.text("dfdsfs");
+api.get("/login", inflight (req, res) => {
+  res.html("<a href='https://github.com/login/oauth/authorize?client_id={env.get("OAUTH_GITHUB_CLIENT_ID")}&redirect_uri={env.get("OAUTH_GITHUB_REDIRECT_URI")}'>Login with GitHub</a>");
 });
 
-api.get("/select", inflight (req, res) => {
-  let re = db.execute("SELECT * FROM users");
-  res.json(unsafeCast(re));
-});
-
-api.get("/test-pg", inflight (req, res) => {
-  // dbPg.execute("CREATE TABLE users (id SERIAL PRIMARY KEY, name text);");
-  // dbPg.execute("INSERT INTO users (name) VALUES ('meir');");
-  let re = dbPg.execute("SELECT * FROM users");
-  res.json(unsafeCast(re));
-});
-
-api.get("/", inflight(req, res) => {
-  res.json({
-    "hello": "world",
-  });
-});
-
-api.get("/auth/github/callback", inflight(req, res) => {
+api.get("/auth/github/callback", inflight (req, res) => {
   if let code = req.queries().get("code") {
-    log("{code}");
-
     let options = auth.OAuth2ProviderOptions {
       clientId: env.get("OAUTH_GITHUB_CLIENT_ID"),
       clientSecret: env.get("OAUTH_GITHUB_CLIENT_SECRET"),
@@ -80,70 +56,38 @@ api.get("/auth/github/callback", inflight(req, res) => {
     let accessToken = github.getAccessToken(code);
     let user = github.getUser(accessToken);
 
-    log("authCallbackApi: user={Json.stringify(user)}");
+    let var result = db.execute("SELECT id FROM users WHERE username = $1", [
+      unsafeCast(user.get("login").asStr()),
+    ]);
 
-    res.html("OK");
+    if result.length == 0 {
+      result = db.execute("INSERT INTO users (username, name) VALUES ($1, $2) RETURNING *", [
+        unsafeCast(user.get("login").asStr()),
+        unsafeCast(user.get("name").asStr()),
+      ]);
+    }
+
+    let userWithId: MutMap<str> = unsafeCast(user);
+
+    userWithId.set("_userId", unsafeCast(result.at(0).get("id")));
+
+    let jwtToken = jwt.jwt.sign(user, env.get("JWT_SECRET"));
+
+    res.cookie("token", jwtToken, maxAge: 8600, path: "/");
+    res.redirect("http://localhost:8080/");
   } else {
-    res.html("error");
+    res.html("Error");
   }
 });
 
-api.get("/auth/meta/callback", inflight(req, res) => {
-  if let code = req.queries().get("code") {
-    log("{code}");
+api.get("/p/me", inflight (req, res) => {
+  let user_: Json = req.context.get("user");
 
-    let options = auth.OAuth2ProviderOptions {
-      clientId: env.get("OAUTH_META_CLIENT_ID"),
-      clientSecret: env.get("OAUTH_META_CLIENT_SECRET"),
-      redirectUri: env.get("OAUTH_META_REDIRECT_URI"),
-    };
+  let user = db.execute("SELECT * FROM users WHERE id = $1", [
+    unsafeCast(user_.get("_userId")),
+  ]);
 
-    let meta = new auth.Meta(options);
-
-    let accessToken = meta.getAccessToken(code);
-    let user = meta.getUser(accessToken);
-
-    log("authCallbackApi: user={Json.stringify(user)}");
-
-    res.html("OK");
-  } else {
-    res.html("error");
-  }
-});
-
-api.get("/login", inflight(req, res) => {
-  res.html("<a href='https://github.com/login/oauth/authorize?client_id={env.get("OAUTH_GITHUB_CLIENT_ID")}&redirect_uri={env.get("OAUTH_GITHUB_REDIRECT_URI")}'>Login with GitHub</a>");
-});
-
-api.get("/login-meta", inflight(req, res) => {
-  res.html("<a href='https://www.facebook.com/v18.0/dialog/oauth?client_id={env.get("OAUTH_META_CLIENT_ID")}&redirect_uri={env.get("OAUTH_META_REDIRECT_URI")}'>Login with Meta</a>");
-});
-
-api.get("/hi/:name", inflight(req, res) => {
-  let name = req.params.get("name");
-  res.html("<p>{name}</p>");
-});
-
-api.get("/stream", inflight(req, res) => {
-  res.streaming(inflight (stream) => {
-    for i in 0..=10 {
-      stream.write("Progress {i}/10");
-      util.sleep(1s);
-    }
-  });
-});
-
-api.get("/events", inflight(req, res) => {
-  res.sse(inflight(stream) => {
-    for i in 0..10 {
-      stream.write(
-        id: "{i}",
-        event: "ping",
-        data: "Ping #{i}",
-      );
-      util.sleep(1s);
-    }
-  });
+  res.json(unsafeCast(user.at(0)));
 });
 
 api.listen(8080);
