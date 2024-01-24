@@ -122,6 +122,7 @@ api.listen(8080);
 * [HTTP streaming](./example_streaming.main.w)
 * [SSE](./example_sse.main.w)
 * [Reponse headers with multi values per key](./example_response_headers_multi_values_per_key.main.w)
+* [Static files (Hosting in S3)](./example_static_files.main.w)
 
 ## Tests
 
