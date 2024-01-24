@@ -50,8 +50,23 @@ pub inflight class Request {
 
     let formData = formdata.FormData.formdata(this._headers.toMap(","), this._body);
 
-    for field in formData.keys() {
-      for value in formData.get(field) {
+    for field in formData.fields.keys() {
+      for value in formData.fields.get(field) {
+        ret.append(field, unsafeCast(value));
+      }
+    }
+
+    return ret;
+  }
+
+  pub inflight files(): multimap.MultiMap {
+    // returns multimap.MultiMap<ValueOrFile>
+    let ret = new multimap.MultiMap();
+
+    let formData = formdata.FormData.formdata(this._headers.toMap(","), this._body);
+
+    for field in formData.files.keys() {
+      for value in formData.files.get(field) {
         ret.append(field, unsafeCast(value));
       }
     }

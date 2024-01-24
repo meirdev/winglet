@@ -11,7 +11,10 @@ function tempfile() {
 
 function FormData(headers, body) {
   return new Promise((resolve, reject) => {
-    const formData = {};
+    const formData = {
+      files: {},
+      fields: {},
+    };
 
     const bb = busboy({ headers });
 
@@ -29,11 +32,11 @@ function FormData(headers, body) {
         })
         .on("error", (err) => reject(err))
         .on("end", () => {
-          if (!(name in formData)) {
-            formData[name] = [];
+          if (!(name in formData.files)) {
+            formData.files[name] = [];
           }
 
-          formData[name].push({
+          formData.files[name].push({
             path: tmpFile,
             name: filename,
             size,
@@ -43,11 +46,11 @@ function FormData(headers, body) {
         });
     })
       .on("field", (name, value) => {
-        if (!(name in formData)) {
-          formData[name] = [];
+        if (!(name in formData.fields)) {
+          formData.fields[name] = [];
         }
 
-        formData[name].push(value);
+        formData.fields[name].push(value);
       })
       .on("finish", () => {
         resolve(formData);

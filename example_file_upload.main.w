@@ -17,7 +17,7 @@ api.get("/", inflight (req, res) => {
 });
 
 api.post("/upload", inflight (req, res) => {
-  let file: request.File = unsafeCast(req.form().get("upload"));
+  let file: request.File = unsafeCast(req.files().get("upload"));
 
   res.html("File name: {file.name}, size: {file.size}, mimetype: {file.mimetype}, tmp path: {file.path}");
 });

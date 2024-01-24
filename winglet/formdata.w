@@ -9,6 +9,11 @@ pub struct File {
   encoding: str?;
 }
 
+pub struct Form {
+  files: Map<Array<File>>;
+  fields: Map<Array<str>>;
+}
+
 pub class FormData {
-  pub static extern "./formdata.js" inflight formdata(headers: Map<str>, body: str): Map<Array<ValueOrFile>>;
+  pub static extern "./formdata.js" inflight formdata(headers: Map<str>, body: str): Form;
 }
