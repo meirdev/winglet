@@ -13,7 +13,7 @@ test "set, get" {
 test "append, getAll, set, get" {
   let map = new multimap.MultiMap();
 
-  assert(map.getAll("Accept") == nil);
+  assert(map.getAll("Accept") == []);
 
   map.append("Accept", "text/html");
   map.append("Accept", "application/json");

@@ -92,12 +92,10 @@ pub inflight class Request {
   pub inflight cookies(): multimap.MultiMap {
     let ret = new multimap.MultiMap();
 
-    if let cookies = this._headers.getAll("cookie") {
-      for value in cookies {
-        let cookies = cookie.Cookie.parse(value);
-        for name in cookies.keys() {
-          ret.append(name, cookies.get(name));
-        }
+    for value in this._headers.getAll("cookie") {
+      let cookies = cookie.Cookie.parse(value);
+      for name in cookies.keys() {
+        ret.append(name, cookies.get(name));
       }
     }
 

@@ -47,10 +47,8 @@ pub class HttpServer {
             let headers = res.getHeaders();
 
             for name in headers.keys() {
-              if let values = headers.getAll(name) {
-                for value in values {
-                  serverResponse.setHeader(name, value);
-                }
+              for value in headers.getAll(name) {
+                serverResponse.setHeader(name, value);
               }
             }
 

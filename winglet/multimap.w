@@ -1,3 +1,16 @@
+pub interface IMultiMap {
+  // almost identical to FormData and URLSearchParams
+  inflight get(name: str): str?;
+  inflight getAll(name: str): Array<str>;
+  inflight keys(): Array<str>; // Iterator
+  inflight values(): Array<str>; // Iterator
+  inflight set(name: str, value: str);
+  inflight append(name: str, value: str);
+  inflight delete(name: str, value: str?);
+  inflight has(name: str, value: str?): bool;
+  inflight entries(): Array<Array<str>>; // Iterator
+}
+
 pub inflight class MultiMap {
   pub map: MutMap<MutArray<str>>;
 
@@ -11,10 +24,11 @@ pub inflight class MultiMap {
     }
   }
 
-  pub inflight getAll(name: str): Array<str>? {
+  pub inflight getAll(name: str): Array<str> {
     if let values = this.map.tryGet(name) {
       return unsafeCast(values);
     }
+    return [];
   }
 
   pub inflight keys(): Array<str> {
