@@ -30,7 +30,7 @@ function FormData(headers, body) {
           appendFileSync(tmpFile, data);
           size += data.length;
         })
-        .on("error", (err) => reject(err))
+        .on("error", () => reject(null))
         .on("end", () => {
           if (!(name in formData.files)) {
             formData.files[name] = [];
@@ -55,8 +55,8 @@ function FormData(headers, body) {
       .on("finish", () => {
         resolve(formData);
       })
-      .on("error", (err) => {
-        reject(err);
+      .on("error", () => {
+        reject(null);
       });
 
     bb.end(body);

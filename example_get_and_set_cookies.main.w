@@ -11,7 +11,7 @@ api.get("/", inflight (req, res) => {
 });
 
 api.get("/get", inflight (req, res) => {
-  let username = req.cookies().get("username");
+  let username = req.cookies.get("username");
 
   res.html("cookie value: {username}");
 });

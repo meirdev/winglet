@@ -43,7 +43,7 @@ api.get("/:userId", inflight (req, res) => {
 });
 
 api.post("/", inflight (req, res) => {
-  if let username = req.form().get("username") {
+  if let username = req.form.get("username") {
     let user: Json = unsafeCast(db.execute("INSERT INTO users (username) VALUES ('{username}')"));
 
     res.status(200);

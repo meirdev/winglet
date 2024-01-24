@@ -16,7 +16,7 @@ api.get("/", inflight (req, res) => {
 });
 
 api.post("/greet", inflight (req, res) => {
-  let fullName = req.form().get("full_name");
+  let fullName = req.form.get("full_name");
 
   res.html("<h1>Hello {fullName}!</h1>");
 });

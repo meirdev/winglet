@@ -17,7 +17,7 @@ api.get("/", inflight(req, res) => {
 });
 
 api.get("/auth/meta/callback", inflight(req, res) => {
-  if let code = req.queries().get("code") {
+  if let code = req.query.get("code") {
     let options = auth.OAuth2ProviderOptions {
       clientId: env.get("OAUTH_META_CLIENT_ID"),
       clientSecret: env.get("OAUTH_META_CLIENT_SECRET"),

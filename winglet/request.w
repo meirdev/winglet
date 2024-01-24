@@ -11,71 +11,100 @@ pub inflight class Request {
   var inflight _method: str;
   var inflight _path: str;
   var inflight _body: str;
-  var inflight _headers: multimap.MultiMap;
+
+  pub var inflight headers: multimap.MultiMap;
 
   pub var inflight params: MutMap<str>;
   pub var inflight context: MutMap<str>;
 
-  new(method: str, path: str, body: str) {
+  pub var inflight pathname: str;
+  pub var inflight query: multimap.MultiMap;
+  pub var inflight cookies: multimap.MultiMap;
+  pub var inflight form: multimap.MultiMap;
+  pub var inflight files: multimap.MultiMap;
+  pub var inflight json: Json;
+
+  new(method: str, path: str, headers: multimap.MultiMap, body: str) {
     this._method = method;
     this._path = path;
     this._body = body;
-    this._headers = new multimap.MultiMap();
+
+    this.headers = headers;
 
     this.params = MutMap<str>{};
     this.context = MutMap<str>{};
+
+    this.pathname = "";
+    this.query = new multimap.MultiMap();
+    this.cookies = new multimap.MultiMap();
+    this.form = new multimap.MultiMap();
+    this.files = new multimap.MultiMap();
+    this.json = {};
   }
 
-  pub inflight queries(): multimap.MultiMap {
-    let ret = new multimap.MultiMap();
-
+  inflight parseUrl() {
     let url_ = url.Url.url(this._path);
+
+    this.query = new multimap.MultiMap();
 
     for name in url_.searchParams.keys() {
       for value in url_.searchParams.getAll(name) {
-        ret.append(name, value);
+        this.query.append(name, value);
       }
     }
 
-    return ret;
+    this.pathname = url_.pathname;
   }
 
-  pub inflight headers(): multimap.MultiMap {
-    return this._headers;
-  }
+  inflight parseHeaders() {
+    this.cookies = new multimap.MultiMap();
 
-  pub inflight form(): multimap.MultiMap {
-    // returns multimap.MultiMap<ValueOrFile>
-    let ret = new multimap.MultiMap();
-
-    let formData = formdata.FormData.formdata(this._headers.toMap(","), this._body);
-
-    for field in formData.fields.keys() {
-      for value in formData.fields.get(field) {
-        ret.append(field, unsafeCast(value));
+    for value in this.headers.getAll("cookie") {
+      let cookies = cookie.Cookie.parse(value);
+      for name in cookies.keys() {
+        this.cookies.append(name, cookies.get(name));
       }
     }
-
-    return ret;
   }
 
-  pub inflight files(): multimap.MultiMap {
-    // returns multimap.MultiMap<ValueOrFile>
-    let ret = new multimap.MultiMap();
+  inflight parseBody() {
+    // Decodes the body according to the content-type
+    try {
+      this.json = {};
+      this.form = new multimap.MultiMap();
+      this.files = new multimap.MultiMap();
 
-    let formData = formdata.FormData.formdata(this._headers.toMap(","), this._body);
-
-    for field in formData.files.keys() {
-      for value in formData.files.get(field) {
-        ret.append(field, unsafeCast(value));
+      if this.headers.has("content-type", "application/json") {
+        this.json = Json.parse(this._body);
+        return;
       }
-    }
 
-    return ret;
+      let formData = formdata.FormData.formdata(this.headers.toMap(","), this._body);
+
+      if unsafeCast(formData) == nil {
+        return;
+      }
+
+      for field in formData.fields.keys() {
+        for value in formData.fields.get(field) {
+          this.form.append(field, value);
+        }
+      }
+
+      for field in formData.files.keys() {
+        for value in formData.files.get(field) {
+          this.files.append(field, unsafeCast(value));
+        }
+      }
+    } catch e {
+    }
   }
 
-  pub inflight json(): Json {
-    return Json.parse(this._body);
+  pub inflight parse() {
+    // each request is parsed when it arrives, if the user changes the initial request it is their responsibility to call the function again
+    this.parseUrl();
+    this.parseHeaders();
+    this.parseBody();
   }
 
   pub inflight body(): str {
@@ -87,26 +116,11 @@ pub inflight class Request {
   }
 
   pub inflight path(): str {
-    let url_ = url.Url.url(this._path);
-
-    return url_.pathname;
+    return this.pathname;
   }
 
   pub inflight method(): str {
     return this._method;
-  }
-
-  pub inflight cookies(): multimap.MultiMap {
-    let ret = new multimap.MultiMap();
-
-    for value in this._headers.getAll("cookie") {
-      let cookies = cookie.Cookie.parse(value);
-      for name in cookies.keys() {
-        ret.append(name, cookies.get(name));
-      }
-    }
-
-    return ret;
   }
 }
 

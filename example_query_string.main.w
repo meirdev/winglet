@@ -5,8 +5,8 @@ bring "./winglet/api.w" as api_;
 let api = new api_.Api();
 
 api.get("/search", inflight (req, res) => {
-  let query = req.queries().getAll("q");
-  let foo = req.queries().get("foo");
+  let query = req.query.getAll("q");
+  let foo = req.query.get("foo");
 
   res.html("query = {query}\nfoo = {foo}");
 });

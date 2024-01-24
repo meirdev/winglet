@@ -16,7 +16,7 @@ api.use("*", inflight (req, res, next) => {
 api.use("/private/*", inflight (req, res, next) => {
   res.header("WWW-Authenticate", "Basic realm=\"Private\"");
 
-  if let auth = req.headers().get("authorization") {
+  if let auth = req.headers.get("authorization") {
     if "Basic {util.base64Encode("{USERNAME}:{PASSWORD}")}" == auth {
       next();
     } else {

@@ -6,6 +6,7 @@ bring "@cdktf/provider-aws" as tfaws;
 
 bring "./env.w" as env;
 bring "./middleware.w" as middleware;
+bring "./multimap.w" as multimap;
 bring "./response.w" as response;
 bring "./request.w" as request;
 bring "./router.w" as router;
@@ -143,6 +144,16 @@ pub class Api extends router.Router {
     let getRes = inflight (event: str): response.Response => {
       let eventJson: Json = unsafeCast(event);
 
+      let path = eventJson.get("rawPath").asStr();
+      let queryString = eventJson.get("rawQueryString").asStr();
+
+      let headers = new multimap.MultiMap();
+      let headers_: Map<str> = unsafeCast(eventJson.get("headers"));
+
+      for name in headers_.keys() {
+        headers.append(name, headers_.get(name));
+      }
+
       let http = eventJson.get("requestContext").get("http");
       let var body = "{eventJson.tryGet("body") ?? ""}";
 
@@ -152,15 +163,12 @@ pub class Api extends router.Router {
 
       let req = new request.Request(
         http.get("method").asStr(),
-        http.get("path").asStr(),
+        "{path}?{queryString}",
+        headers,
         body,
       );
 
-      let headers_: Map<str> = unsafeCast(eventJson.get("headers"));
-
-      for name in headers_.keys() {
-        req.headers().append(name, headers_.get(name));
-      }
+      req.parse();
 
       return this.dispatch(req);
     };

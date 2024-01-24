@@ -7,13 +7,13 @@ bring "./server.w" as server;
 
 let httpServer = new server.HttpServer(inflight (req, res) => {
   log("{req.path()}");
-  log("{Json.stringify(req.queries())}");
+  log("{Json.stringify(req.query)}");
 
   let resData = new response.Response();
 
   resData.json({
     body: req.body(),
-    headers: Json.stringify(req.headers()),
+    headers: Json.stringify(req.headers),
   });
 
   res(resData);

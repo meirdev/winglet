@@ -23,7 +23,7 @@ let db = new pg.PostgreSQL(
 
 api.use("/p/*", inflight (req, res, next) => {
   try {
-    let token = req.cookies().get("token");
+    let token = req.cookies.get("token");
     let value = jwt.jwt.verify(token ?? "", env.get("JWT_SECRET"));
 
     req.context.set("user", unsafeCast(value));
@@ -44,7 +44,7 @@ api.get("/login", inflight (req, res) => {
 });
 
 api.get("/auth/github/callback", inflight (req, res) => {
-  if let code = req.queries().get("code") {
+  if let code = req.query.get("code") {
     let options = auth.OAuth2ProviderOptions {
       clientId: env.get("OAUTH_GITHUB_CLIENT_ID"),
       clientSecret: env.get("OAUTH_GITHUB_CLIENT_SECRET"),
@@ -93,12 +93,10 @@ api.get("/p/me", inflight (req, res) => {
 api.put("/p/me", inflight (req, res) => {
   let user_: Json = req.context.get("user");
 
-  let data = req.json();
-
   let user = db.execute("UPDATE users SET name = $1, bio = $2, link = $3 WHERE id = $4 RETURNING *", [
-    unsafeCast(data.get("name").asStr()),
-    unsafeCast(data.get("bio").asStr()),
-    unsafeCast(data.get("link").asStr()),
+    unsafeCast(req.json.get("name").asStr()),
+    unsafeCast(req.json.get("bio").asStr()),
+    unsafeCast(req.json.get("link").asStr()),
     unsafeCast(user_.get("_userId")),
   ]);
 
@@ -119,12 +117,10 @@ api.get("/p/users/:username/threads", inflight (req, res) => {
 api.post("/p/posts", inflight (req, res) => {
   let user_: Json = req.context.get("user");
 
-  let data = req.json();
-
   let post = db.execute("INSERT INTO posts (\"user\", content, type) VALUES ($1, $2, $3)", [
     unsafeCast(user_.get("_userId")),
-    unsafeCast(data.get("content").asStr()),
-    unsafeCast(data.get("type").asStr()),
+    unsafeCast(req.json.get("content").asStr()),
+    unsafeCast(req.json.get("type").asStr()),
   ]);
 
   res.json(unsafeCast(post));

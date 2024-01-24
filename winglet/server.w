@@ -1,5 +1,6 @@
 bring "./http.w" as http;
 bring "./http.types.w" as httpTypes;
+bring "./multimap.w" as multimap;
 bring "./response.w" as response;
 bring "./request.w" as request;
 bring "./url.w" as url;
@@ -31,15 +32,18 @@ pub class HttpServer {
       });
 
       serverRequest.on("end", () => {
-        let req = new request.Request(serverRequest.method, serverRequest.url, body);
+        let headers = new multimap.MultiMap();
 
         if let headers_ = serverRequest.headersDistinct {
           for name in headers_.keys() {
             for value in headers_.get(name) {
-              req.headers().append(name, value);
+              headers.append(name, value);
             }
           }
         }
+
+        let req = new request.Request(serverRequest.method, serverRequest.url, headers, body);
+        req.parse();
 
         this.onRequest(
           req,
