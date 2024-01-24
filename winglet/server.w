@@ -44,12 +44,10 @@ pub class HttpServer {
         this.onRequest(
           req,
           inflight (res: response.Response) => {
-            let headers = res.getHeaders();
+            let headers = res.getHeaders().toMap(",");
 
-            for name in headers.keys() {
-              for value in headers.getAll(name) {
-                serverResponse.setHeader(name, value);
-              }
+            for key in headers.keys() {
+              serverResponse.setHeader(key, headers.get(key));
             }
 
             try {
