@@ -24,6 +24,7 @@
     "busboy": "^1.6.0",
     "cookie": "^0.6.0",
     "dotenv": "^16.3.2",
+    "mime-types": "^2.1.35",
     "websocket": "^1.0.34"
   },
   "devDependencies": {
