@@ -48,7 +48,27 @@ test "set html" {
   assert(res.getBody() == html);
 }
 
-test "set file" {
+test "set file to download" {
+  let res = new response.Response();
+
+  let data = "hello world";
+  let path = "./test.txt";
+
+  fs.writeFile("test.txt", data);
+
+  res.file(path, mediaType: "text/plain", filename: "hello.txt", download: true);
+
+  let headers = res.getHeaders();
+
+  assert(headers.get("Content-Type") == "text/plain");
+  assert(headers.get("Content-Disposition") == "attachment; filename=\"hello.txt\"");
+
+  assert(res.getBody() == data);
+
+  fs.remove(path);
+}
+
+test "set file to view" {
   let res = new response.Response();
 
   let data = "hello world";
@@ -61,7 +81,6 @@ test "set file" {
   let headers = res.getHeaders();
 
   assert(headers.get("Content-Type") == "text/plain");
-  assert(headers.get("Content-Disposition") == "attachment; filename=\"hello.txt\"");
 
   assert(res.getBody() == data);
 

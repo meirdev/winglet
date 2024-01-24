@@ -15,6 +15,7 @@ struct HtmlOptions {
 struct FileOptions {
   mediaType: str?;
   filename: str?;
+  download: bool?;
 }
 
 struct RedirectOptions {
@@ -116,7 +117,9 @@ pub inflight class Response {
       filename = "{options?.filename}";
     }
 
-    this._headers.set("Content-Disposition", "attachment; filename=\"{filename}\"");
+    if options?.download == true {
+      this._headers.set("Content-Disposition", "attachment; filename=\"{filename}\"");
+    }
 
     this._body = fs.readFile(path);
 
