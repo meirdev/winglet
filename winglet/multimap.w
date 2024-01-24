@@ -77,6 +77,12 @@ pub inflight class MultiMap {
     return unsafeCast(entries);
   }
 
+  pub inflight forEach(fn: inflight (str, str): void) {
+    for entry in this.entries() {
+      fn(entry.at(0), entry.at(1));
+    }
+  }
+
   pub inflight toMap(separator: str): Map<str> {
     let headers: MutMap<str> = {};
     for name in this.map.keys() {
@@ -85,9 +91,11 @@ pub inflight class MultiMap {
     return unsafeCast(headers);
   }
 
-  pub inflight forEach(fn: inflight (str, str): void) {
-    for entry in this.entries() {
-      fn(entry.at(0), entry.at(1));
+  pub static inflight fromMap(map: Map<str>): MultiMap {
+    let multiMap = new MultiMap();
+    for name in map.keys() {
+      multiMap.set(name, map.get(name));
     }
+    return multiMap;
   }
 }

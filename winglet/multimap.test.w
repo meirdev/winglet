@@ -86,7 +86,7 @@ test "forEach" {
   map.append("User-Agent", "chrome");
 
   let values = MutArray<str>[];
-  
+
   map.forEach((name, value) => {
     values.push("{name}={value}");
   });
@@ -94,4 +94,17 @@ test "forEach" {
   let expected = "Content-Type=text/html,Content-Type=application/json,Content-Language=en,Content-Language=he,User-Agent=chrome";
 
   assert(values.join(",") == expected);
+}
+
+test "fromMap" {
+  let value: MutMap<str> = {
+    "Content-Type": "text/html",
+    "Content-Language": "en",
+  };
+
+  let expected = new multimap.MultiMap();
+  expected.set("Content-Type", "text/html");
+  expected.set("Content-Language", "en");
+
+  assert(Json.stringify(multimap.MultiMap.fromMap(unsafeCast(value))) == Json.stringify(expected));
 }
