@@ -55,3 +55,23 @@ test "set, append, keys, values, entires" {
 
   assert(Json.stringify(map.entries()) == Json.stringify([["Accept", "text/html"], ["Accept", "text/plain"], ["Cache-Control", "no-cache"]]));
 }
+
+test "toMap" {
+  let map = new multimap.MultiMap();
+
+  map.append("Content-Type", "text/html");
+  map.append("Content-Type", "application/json");
+  map.append("Content-Language", "en");
+  map.append("Content-Language", "he");
+  map.append("User-Agent", "chrome");
+
+  let value = map.toMap(", ");
+
+  let expected: MutMap<str> = {
+    "Content-Type": "text/html, application/json",
+    "Content-Language": "en, he",
+    "User-Agent": "chrome",
+  };
+
+  assert(Json.stringify(value) == Json.stringify(expected));
+}

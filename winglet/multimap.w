@@ -76,4 +76,12 @@ pub inflight class MultiMap {
     }
     return unsafeCast(entries);
   }
+
+  pub inflight toMap(separator: str): MutMap<str> {
+    let headers: MutMap<str> = {};
+    for name in this.map.keys() {
+      headers.set(name, this.map.get(name).join(separator));
+    }
+    return headers;
+  }
 }
