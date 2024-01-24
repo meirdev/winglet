@@ -7,6 +7,10 @@
   <p><i>A lightweight web framework designed for simplicity and minimal dependencies</i></p>
 </div>
 
+## Note
+
+_All code in the repo has been tested with version 0.54.50 of Wing._
+
 ## Counter (Winglet + Turso)
 
 ```wing
