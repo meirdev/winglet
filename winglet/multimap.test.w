@@ -75,3 +75,23 @@ test "toMap" {
 
   assert(Json.stringify(value) == Json.stringify(expected));
 }
+
+test "forEach" {
+  let map = new multimap.MultiMap();
+
+  map.append("Content-Type", "text/html");
+  map.append("Content-Type", "application/json");
+  map.append("Content-Language", "en");
+  map.append("Content-Language", "he");
+  map.append("User-Agent", "chrome");
+
+  let values = MutArray<str>[];
+  
+  map.forEach((name, value) => {
+    values.push("{name}={value}");
+  });
+
+  let expected = "Content-Type=text/html,Content-Type=application/json,Content-Language=en,Content-Language=he,User-Agent=chrome";
+
+  assert(values.join(",") == expected);
+}
