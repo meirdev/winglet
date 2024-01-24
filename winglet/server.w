@@ -99,7 +99,7 @@ pub class HttpServer {
   pub inflight address(): str {
     let address = this.server.address();
 
-    return "{address.address}:{address.port}";
+    return "http://localhost:{address.port}";
   }
 
   pub inflight listen(port: num?) {
