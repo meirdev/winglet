@@ -53,16 +53,22 @@ pub inflight class Response {
     return this._stream;
   }
 
-  pub inflight status(code: num) {
+  pub inflight status(code: num): Response {
     this._status = code;
+
+    return this;
   }
 
-  pub inflight header(name: str, value: str) {
+  pub inflight header(name: str, value: str): Response {
     this._headers.set(name, value);
+
+    return this;
   }
 
-  pub inflight body(payload: str) {
+  pub inflight body(payload: str): Response {
     this._body = payload;
+
+    return this;
   }
 
   inflight setBodyWithContentType(payload: str, contentType: str, charset: str?) {
@@ -77,19 +83,25 @@ pub inflight class Response {
     this._body = payload;
   }
 
-  pub inflight json(body: Json, options: JsonOptions?) {
+  pub inflight json(body: Json, options: JsonOptions?): Response {
     this.setBodyWithContentType(Json.stringify(body), "application/json", options?.charset);
+
+    return this;
   }
 
-  pub inflight html(body: str, options: HtmlOptions?) {
+  pub inflight html(body: str, options: HtmlOptions?): Response {
     this.setBodyWithContentType(body, "text/html", options?.charset);
+
+    return this;
   }
 
-  pub inflight text(body: str, options: HtmlOptions?) {
+  pub inflight text(body: str, options: HtmlOptions?): Response {
     this.setBodyWithContentType(body, "text/plain", options?.charset);
+
+    return this;
   }
 
-  pub inflight file(path: str, options: FileOptions?) {
+  pub inflight file(path: str, options: FileOptions?): Response {
     let var mediaType = "application/octet-stream";
 
     if options?.mediaType? {
@@ -107,27 +119,31 @@ pub inflight class Response {
     this._headers.set("Content-Disposition", "attachment; filename=\"{filename}\"");
 
     this._body = fs.readFile(path);
+
+    return this;
   }
 
-  pub inflight redirect(location: str, options: RedirectOptions?) {
+  pub inflight redirect(location: str, options: RedirectOptions?): Response {
     this._status = options?.status ?? 301;
 
     this._headers.set("Location", location);
+
+    return this;
   }
 
-  pub inflight error(status: num) {
-    this._status = status;
-  }
-
-  pub inflight cookie(name: str, value: str?, options: CookieOptions?) {
+  pub inflight cookie(name: str, value: str?, options: CookieOptions?): Response {
     this._headers.set("Set-Cookie", cookie.Cookie.serialize(name, value ?? "", options));
+
+    return this;
   }
 
-  pub inflight streaming(stream: inflight (stream.Stream): void) {
+  pub inflight streaming(stream: inflight (stream.Stream): void): Response {
     this._stream = stream;
+
+    return this;
   }
 
-  pub inflight sse(events: inflight (stream.StreamSSE): void) {
+  pub inflight sse(events: inflight (stream.StreamSSE): void): Response {
     this._headers.set("Content-Type", "text/event-stream");
 
     inflight class Wrapper {
@@ -158,6 +174,8 @@ pub inflight class Response {
       let wrap = new Wrapper(stream);
       events(unsafeCast(wrap));
     });
+
+    return this;
   }
 }
 

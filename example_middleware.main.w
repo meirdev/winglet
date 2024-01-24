@@ -14,15 +14,16 @@ api.use("*", inflight (req, res, next) => {
 });
 
 api.use("/private/*", inflight (req, res, next) => {
-  res.status(401);
   res.header("WWW-Authenticate", "Basic realm=\"Private\"");
 
   if let auth = req.headers().get("authorization") {
     if "Basic {util.base64Encode("{USERNAME}:{PASSWORD}")}" == auth {
       next();
     } else {
-      res.html("Incorrect password or username");
+      res.status(401).html("Incorrect password or username");
     }
+  } else {
+    res.status(401).html("Protected page");
   }
 });
 
@@ -45,5 +46,11 @@ test "example" {
     "Authorization": "Basic bWVpcjoxMjM0NTY="
   });
 
+  assert(response.status == 200);
   assert(response.body == "Private Page After");
+
+  response = http.get("http://localhost:8080/private/page");
+
+  assert(response.status == 401);
+  assert(response.body == "Protected page After");
 }
