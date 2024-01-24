@@ -46,17 +46,9 @@ pub inflight class Request {
 
   pub inflight form(): multimap.MultiMap {
     // returns multimap.MultiMap<ValueOrFile>
-    let headers: MutMap<str> = {};
-
-    for name in this._headers.keys() {
-      if let value = this._headers.get(name) {
-        headers.set(name, value);
-      }
-    }
-
     let ret = new multimap.MultiMap();
 
-    let formData = formdata.FormData.formdata(unsafeCast(headers), this._body);
+    let formData = formdata.FormData.formdata(this._headers.toMap(","), this._body);
 
     for field in formData.keys() {
       for value in formData.get(field) {
