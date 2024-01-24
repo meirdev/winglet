@@ -17,65 +17,94 @@ pub struct DockerOptions {
   cmd: Array<str>?;
 }
 
-pub class Docker {
+class Docker_ {
   pub static extern "./docker.js" inflight dockerApi(options: DockerApiOptions): Json?;
+}
 
-  options: DockerOptions;
+pub inflight class Container {
+  dockerId: str;
 
-  new(options: DockerOptions) {
-    this.options = options;
+  new(dockerId: str) {
+    this.dockerId = dockerId;
   }
 
-  inflight new() {
-    let var result = Docker.dockerApi(
-      path: "/images/create?{url.Url.urlSearchParams({"fromImage": this.options.image, "tag": this.options.tag}).toString()}",
+  pub inflight stop() {
+    let result = Docker_.dockerApi(
+      path: "/containers/{this.dockerId}/stop",
       method: "POST",
     );
 
     // log("{result}");
+  }
+}
 
-    let portBindings = MutMap<Array<Map<str>>>{};
+pub class Docker {
+  name: str;
 
-    for port in this.options.ports.keys() {
-      portBindings.set("{port}/tcp", [{"HostPort": "{this.options.ports.get(port)}/tcp"}]);
+  new() {
+    this.name = nodeof(this).addr.substring(0, 8);
+  }
+
+  pub inflight run(options: DockerOptions): Container {
+    let var result = Docker_.dockerApi(
+      path: "/containers/json?{url.Url.urlSearchParams({"all": true}).toString()}",
+      method: "GET",
+    );
+
+    // log("{Json.stringify(result)}");
+
+    let var containerId: str? = nil;
+
+    let containers: Array<Json> = unsafeCast(result);
+
+    for container in containers {
+      if container.get("Names").getAt(0).asStr() == "/{this.name}" {
+        containerId = container.get("Id").asStr();
+      }
     }
 
-    // log("{portBindings}");
+    if !containerId? {
+      result = Docker_.dockerApi(
+        path: "/images/create?{url.Url.urlSearchParams({"fromImage": options.image, "tag": options.tag}).toString()}",
+        method: "POST",
+      );
 
-    result = Docker.dockerApi(
-      path: "/containers/create",
-      method: "POST",
-      body: {
-        "Image": "{this.options.image}:{this.options.tag}",
-        "Cmd": this.options.cmd,
-        "HostConfig": {
-          "PortBindings": Json.parse(Json.stringify(portBindings)),
+      // log("{Json.stringify(result)}");
+
+      let portBindings = MutMap<Array<Map<str>>>{};
+
+      for port in options.ports.keys() {
+        portBindings.set("{port}/tcp", [{"HostPort": "{options.ports.get(port)}/tcp"}]);
+      }
+
+      // log("{portBindings}");
+
+      result = Docker_.dockerApi(
+        path: "/containers/create?{url.Url.urlSearchParams({"name": this.name}).toString()}",
+        method: "POST",
+        body: {
+          "Image": "{options.image}:{options.tag}",
+          "Cmd": options.cmd,
+          "HostConfig": {
+            "PortBindings": Json.parse(Json.stringify(portBindings)),
+          },
         },
-      },
-    );
+      );
 
-    // log("{result}");
+      // log("{Json.stringify(result)}");
 
-    let id = result?.get("Id")?.asStr();
+      containerId = result?.get("Id")?.asStr();
+    }
 
-    result = Docker.dockerApi(
-      path: "/containers/{id}/start",
+    result = Docker_.dockerApi(
+      path: "/containers/{containerId}/start",
       method: "POST",
     );
 
     // log("{result}");
 
-    util.sleep(5s);
-
-    result = Docker.dockerApi(
-      path: "/containers/{id}/stop",
-      method: "POST",
-    );
-
-    // log("{result}");
-  }
-
-  pub inflight run() {
-
+    if let id = containerId {
+      return new Container(id);
+    }
   }
 }
