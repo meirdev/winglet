@@ -1,3 +1,4 @@
+bring cloud;
 bring fs;
 bring util;
 
@@ -5,11 +6,14 @@ bring "cdktf" as cdktf;
 bring "@cdktf/provider-aws" as tfaws;
 
 bring "./mime-types.w" as mimeTypes;
+bring "./server.w" as server;
+bring "./response.w" as response;
 
 pub struct StaticFilesProps {
   path: str;
   indexDocument: str?;
   errorDocument: str?;
+  simPort: num?;
 }
 
 pub interface IStaticFiles extends std.IResource {}
@@ -17,10 +21,19 @@ pub interface IStaticFiles extends std.IResource {}
 pub class StaticFilesBase {
   protected defaultIndexDocument: str;
   protected defaultErrorDocument: str;
+  protected defaultSimPort: num;
+  protected testingMode: bool;
 
   new() {
     this.defaultIndexDocument = "index.html";
     this.defaultErrorDocument = "index.html";
+    this.defaultSimPort = 9000;
+
+    try {
+      this.testingMode = util.env("TESTING_MODE") == "y";
+    } catch {
+      this.testingMode = false;
+    }
   }
 
   protected glob(path: str): MutArray<str> {
@@ -48,8 +61,36 @@ pub class StaticFilesBase {
 
 pub class StaticFilesSim extends StaticFilesBase impl IStaticFiles {
   new(props: StaticFilesProps) {
-    for file in this.glob(props.path) {
-      log("{file}");
+    if this.testingMode || !std.Node.of(this).app.isTestEnvironment {
+      let port = props.simPort ?? this.defaultSimPort;
+
+      log("Static files URL: http://localhost:{port}");
+
+      let absPath = fs.absolute(props.path);
+
+      let httpServer = new server.HttpServer(inflight (req, res) => {
+        let path = fs.join(absPath, req.pathname);
+
+        let resData = new response.Response();
+
+        if fs.isDir(path) {
+          resData.status(403).html("Directory index is not implemented");
+        }
+        elif fs.exists(path) {
+          resData.status(200).file(path).header("Content-Type", mimeTypes.MimeType.lookup(path));
+        }
+        else {
+          resData.status(404).html("File not found");
+        }
+
+        res(resData);
+      });
+
+      new cloud.Service(inflight () => {
+        httpServer.listen(port);
+
+        return inflight () => { httpServer.close(); };
+      });
     }
   }
 }
@@ -131,7 +172,7 @@ pub class StaticFilesTfaws extends StaticFilesBase impl IStaticFiles {
         bucket: this.bucket.id,
         key: file.substring(absPath.length + 1),
         source: file,
-        contentType: mimeTypes.MimeType.lookup(file),
+        contentType: mimeTypes.MimeType.preflightLookup(file),
         etag: "{datetime.utcNow().timestamp}",
       }) as "file-{key}";
     }
