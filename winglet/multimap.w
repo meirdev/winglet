@@ -79,7 +79,7 @@ pub inflight class MultiMap {
 
   pub inflight forEach(fn: inflight (str, str): void) {
     for entry in this.entries() {
-      fn(entry.at(0), entry.at(1));
+      fn(entry.at(1), entry.at(0));
     }
   }
 

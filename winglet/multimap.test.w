@@ -87,7 +87,7 @@ test "forEach" {
 
   let values = MutArray<str>[];
 
-  map.forEach((name, value) => {
+  map.forEach((value, name) => {
     values.push("{name}={value}");
   });
 
