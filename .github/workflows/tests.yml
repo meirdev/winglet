@@ -49,8 +49,5 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Test libsql
-        run: sleep 3 && curl http://localhost:8888/health
-
       - name: Test examples
-        run: ./test example_turso.main.w  && ./test example_neon.main.w
+        run: ./test example_*
