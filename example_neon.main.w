@@ -13,15 +13,13 @@ let api = new api_.Api();
 
 let env = new env_.Env(path: "./dev.env");
 
-log("{Json.stringify(env.vars)}");
-
 let db = new pg.PostgreSQL(
   user: env.vars.get("PG_USER"),
   password: env.vars.get("PG_PASSWORD"),
   host: env.vars.get("PG_HOST"),
   port: env.vars.get("PG_PORT"),
   database: env.vars.get("PG_DATABASE"),
-  // ssl: true,
+  ssl: true,
 );
 
 new cloud.Service(inflight () => {
@@ -96,4 +94,6 @@ test "example" {
   }
 
   assert(found);
+
+  assert(false); // pg stuck if not
 }
