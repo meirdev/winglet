@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+for file in "$@"
+do
+    TESTING_MODE=y wing test $file
+done

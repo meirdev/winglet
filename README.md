@@ -130,6 +130,8 @@ To run tests, you need to add the environment variable `TESTING_MODE=y` before r
 
 ```bash
 TESTING_MODE=y wing test example_query_string.main.w
+# or
+./test example_query_string.main.w example_return_json.main.w
 ```
 
 ## Roadmap
