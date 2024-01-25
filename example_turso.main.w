@@ -11,7 +11,7 @@ let api = new api_.Api();
 let env = new env_.Env(path: "./dev.env");
 
 let db = new libsql.LibSql(
-  url: "http://libsql:8888",
+  url: "http://localhost:8888",
 );
 
 new cloud.Service(inflight () => {
