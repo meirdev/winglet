@@ -11,8 +11,7 @@ let api = new api_.Api();
 let env = new env_.Env(path: "./dev.env");
 
 let db = new libsql.LibSql(
-  url: env.vars.get("TURSO_URL"),
-  authToken: env.vars.get("TURSO_TOKEN"),
+  url: "http://libsql:8888",
 );
 
 new cloud.Service(inflight () => {
