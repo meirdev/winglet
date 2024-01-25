@@ -50,7 +50,7 @@ jobs:
         run: npm ci
 
       - name: Test libsql
-        run: sleep 3 && curl http://libsql:8888/health
+        run: sleep 3 && curl http://localhost:8888/health
 
       - name: Test examples
         run: ./test example_turso.main.w
