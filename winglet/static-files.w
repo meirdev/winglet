@@ -5,6 +5,7 @@ bring util;
 bring "cdktf" as cdktf;
 bring "@cdktf/provider-aws" as tfaws;
 
+bring "./glob.w" as glob;
 bring "./mime-types.w" as mimeTypes;
 bring "./server.w" as server;
 bring "./response.w" as response;
@@ -34,28 +35,6 @@ pub class StaticFilesBase {
     } catch {
       this.testingMode = false;
     }
-  }
-
-  protected glob(path: str): MutArray<str> {
-    let files = MutArray<str>[];
-  
-    let addToFiles = (path: str) => {
-      let dir = fs.readdir(path);
-  
-      for file in dir {
-        let filePath = fs.absolute(fs.join(path, file));
-  
-        if fs.isDir(filePath) {
-          addToFiles(filePath);
-        } else {
-          files.push(filePath);
-        }
-      }
-    };
-  
-    addToFiles(path);
-  
-    return files;
   }
 }
 
@@ -165,7 +144,7 @@ pub class StaticFilesTfaws extends StaticFilesBase impl IStaticFiles {
 
     let absPath = fs.absolute(props.path);
 
-    for file in this.glob(absPath) {
+    for file in glob.Glob.glob(absPath) {
       let key = file.substring(absPath.length + 1);
 
       new tfaws.s3Object.S3Object({
