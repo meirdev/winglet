@@ -18,7 +18,7 @@ let db = new pg.PostgreSQL(
   host: env.vars.get("PG_HOST"),
   port: env.vars.get("PG_PORT"),
   database: env.vars.get("PG_DATABASE"),
-  ssl: true,
+  // ssl: true,
 );
 
 new cloud.Service(inflight () => {
