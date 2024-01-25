@@ -1,0 +1,33 @@
+name: Test
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - main
+  
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.16.0
+          cache: npm
+
+      - name: Install Wing
+        run: npm i -g winglang
+
+      - name: Install
+        run: npm ci
+
+      - name: Test examples
+        run: ./test example_*
