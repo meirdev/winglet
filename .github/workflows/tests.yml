@@ -49,5 +49,8 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Test libsql
+        run: curl http://localhost:8888/health
+
       - name: Test examples
         run: ./test example_turso.main.w
