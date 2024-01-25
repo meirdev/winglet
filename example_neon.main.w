@@ -95,5 +95,5 @@ test "example" {
 
   assert(found);
 
-  assert(false); // pg stuck if not
+  db.close();
 }
