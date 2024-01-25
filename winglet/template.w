@@ -7,7 +7,7 @@ pub class Template {
   templates: MutMap<str>;
 
   new(dir: str) {
-    this.dir = "";
+    this.dir = dir;
     this.templates = {};
 
     for file in glob.Glob.glob(dir) {
