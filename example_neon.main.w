@@ -10,7 +10,7 @@ bring "./winglet/env.w" as env_;
 
 let api = new api_.Api();
 
-let env = new env_.Env();
+let env = new env_.Env(path: "./dev.env");
 
 let db = new pg.PostgreSQL(
   user: env.vars.get("PG_USER"),
