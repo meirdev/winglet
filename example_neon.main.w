@@ -3,6 +3,7 @@
 bring cloud;
 bring http;
 bring math;
+bring util;
 
 bring "./winglet/api.w" as api_;
 bring "./winglet/database/pg.w" as pg;
@@ -18,7 +19,7 @@ let db = new pg.PostgreSQL(
   host: env.vars.get("PG_HOST"),
   port: env.vars.get("PG_PORT"),
   database: env.vars.get("PG_DATABASE"),
-  ssl: true,
+  ssl: env.vars.get("PG_SSL") == "true",
 );
 
 new cloud.Service(inflight () => {
@@ -61,6 +62,8 @@ api.post("/", inflight (req, res) => {
 api.listen(8080);
 
 test "example" {
+  util.sleep(3s);
+
   let username = "testing{math.round(math.random(1000000))}";
 
   let var response = http.post(
@@ -91,4 +94,6 @@ test "example" {
   }
 
   assert(found);
+
+  db.close();
 }

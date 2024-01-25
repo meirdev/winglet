@@ -2,5 +2,5 @@
 
 for file in "$@"
 do
-    TESTING_MODE=y wing test $file
+    TESTING_MODE=y timeout 10s wing test $file
 done
