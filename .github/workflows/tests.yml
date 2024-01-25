@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    container: node:18.16.0
+    # container: node:18.16.0
 
     services:
       postgres:
@@ -37,11 +37,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # - name: Setup node
-      #   uses: actions/setup-node@v3
-      #   with:
-      #     node-version: 18.16.0
-      #     cache: npm
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.16.0
+          cache: npm
 
       - name: Install Wing
         run: npm i -g winglang
