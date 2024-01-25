@@ -123,6 +123,7 @@ api.listen(8080);
 * [SSE](./example_sse.main.w)
 * [Response - set headers with multi values per key](./example_response_headers_multi_values_per_key.main.w)
 * [Static files (Hosting in S3)](./example_static_files.main.w)
+* [Templates](./example_templates.main.w)
 
 ## Tests
 
