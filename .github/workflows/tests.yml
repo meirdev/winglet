@@ -20,6 +20,8 @@ jobs:
         image: postgres
         env:
           POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -28,6 +30,8 @@ jobs:
 
       libsql:
         image: ghcr.io/libsql/sqld:latest
+        ports:
+          - 8888:8080
 
     steps:
       - name: Checkout
