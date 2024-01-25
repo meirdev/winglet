@@ -3,6 +3,7 @@
 bring cloud;
 bring http;
 bring math;
+bring util;
 
 bring "./winglet/api.w" as api_;
 bring "./winglet/database/pg.w" as pg;
@@ -11,6 +12,8 @@ bring "./winglet/env.w" as env_;
 let api = new api_.Api();
 
 let env = new env_.Env(path: "./dev.env");
+
+log("{Json.stringify(env.vars)}");
 
 let db = new pg.PostgreSQL(
   user: env.vars.get("PG_USER"),
@@ -61,6 +64,8 @@ api.post("/", inflight (req, res) => {
 api.listen(8080);
 
 test "example" {
+  util.sleep(3s);
+
   let username = "testing{math.round(math.random(1000000))}";
 
   let var response = http.post(
