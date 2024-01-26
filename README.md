@@ -14,15 +14,13 @@ _All code in the repo has been tested with version 0.54.50 of Wing._
 ## Counter (Winglet + Turso)
 
 ```wing
-bring http;
-
 bring "./winglet/api.w" as api_;
 bring "./winglet/database/libsql.w" as libsql;
 bring "./winglet/env.w" as env_;
 
 let api = new api_.Api();
 
-let env = new env_.Env();
+let env = new env_.Env(path: "./dev.env");
 
 class Counter {
   var db: libsql.LibSql;
@@ -58,8 +56,8 @@ class Counter {
   }
 
   pub inflight peek(): str {
-    let result: Array<Json> = unsafeCast(this.db.execute("SELECT * FROM counter"));
-    return result.at(0).get("value").asStr();
+    let result = this.db.execute("SELECT * FROM counter");
+    return result.getAt(0).get("value").asStr();
   }
 }
 

@@ -56,25 +56,19 @@ api.get("/auth/github/callback", inflight (req, res) => {
     let accessToken = github.getAccessToken(code);
     let user = github.getUser(accessToken);
 
-    let var result = db.execute("SELECT id FROM users WHERE username = $1", [
-      unsafeCast(user.get("login").asStr()),
-    ]);
+    let var result = db.execute("SELECT id FROM users WHERE username = $1", user.get("login").asStr());
 
-    if result.length == 0 {
-      result = db.execute("INSERT INTO users (username, name) VALUES ($1, $2) RETURNING *", [
-        unsafeCast(user.get("login").asStr()),
-        unsafeCast(user.get("name").asStr()),
-      ]);
+    if result.tryGetAt(0)? {
+      result = db.execute("INSERT INTO users (username, name) VALUES ($1, $2) RETURNING *", user.get("login").asStr(), user.get("name").asStr());
     }
 
     let userWithId: MutMap<str> = unsafeCast(user);
 
-    userWithId.set("_userId", unsafeCast(result.at(0).get("id")));
+    userWithId.set("_userId", result.getAt(0).get("id").asStr());
 
     let jwtToken = jwt.jwt.sign(user, env.get("JWT_SECRET"));
 
-    res.cookie("token", jwtToken, maxAge: 8600, path: "/");
-    res.redirect("http://localhost:8080/");
+    res.cookie("token", jwtToken, maxAge: 8600, path: "/").redirect("http://localhost:8080/");
   } else {
     res.html("Error");
   }
@@ -83,47 +77,45 @@ api.get("/auth/github/callback", inflight (req, res) => {
 api.get("/p/me", inflight (req, res) => {
   let user_: Json = req.context.get("user");
 
-  let user = db.execute("SELECT * FROM users WHERE id = $1", [
-    unsafeCast(user_.get("_userId")),
-  ]);
+  let user = db.execute("SELECT * FROM users WHERE id = $1", user_.get("_userId"));
 
-  res.json(unsafeCast(user.at(0)));
+  res.json(user.getAt(0));
 });
 
 api.put("/p/me", inflight (req, res) => {
   let user_: Json = req.context.get("user");
 
-  let user = db.execute("UPDATE users SET name = $1, bio = $2, link = $3 WHERE id = $4 RETURNING *", [
-    unsafeCast(req.json.get("name").asStr()),
-    unsafeCast(req.json.get("bio").asStr()),
-    unsafeCast(req.json.get("link").asStr()),
-    unsafeCast(user_.get("_userId")),
-  ]);
+  let user = db.execute("UPDATE users SET name = $1, bio = $2, link = $3 WHERE id = $4 RETURNING *",
+    req.json.get("name").asStr(),
+    req.json.get("bio").asStr(),
+    req.json.get("link").asStr(),
+    user_.get("_userId"),
+  );
 
-  res.json(unsafeCast(user.at(0)));
+  res.json(user.getAt(0));
 });
 
 api.get("/p/users/:username/threads", inflight (req, res) => {
   let user_: Json = req.context.get("user");
 
-  let threads = db.execute("SELECT posts.* FROM posts LEFT JOIN users ON posts.user = users.id WHERE posts.type = $1 AND users.username = $2", [
-    unsafeCast("thread"),
-    unsafeCast(req.params.get("username")),
-  ]);
+  let threads = db.execute("SELECT posts.* FROM posts LEFT JOIN users ON posts.user = users.id WHERE posts.type = $1 AND users.username = $2",
+    "thread",
+    req.params.get("username"),
+  );
 
-  res.json(unsafeCast(threads));
+  res.json(threads);
 });
 
 api.post("/p/posts", inflight (req, res) => {
   let user_: Json = req.context.get("user");
 
-  let post = db.execute("INSERT INTO posts (\"user\", content, type) VALUES ($1, $2, $3)", [
-    unsafeCast(user_.get("_userId")),
-    unsafeCast(req.json.get("content").asStr()),
-    unsafeCast(req.json.get("type").asStr()),
-  ]);
+  let post = db.execute("INSERT INTO posts (\"user\", content, type) VALUES ($1, $2, $3)",
+    user_.get("_userId"),
+    req.json.get("content").asStr(),
+    req.json.get("type").asStr(),
+  );
 
-  res.json(unsafeCast(post));
+  res.json(post);
 });
 
 api.listen(8080);
