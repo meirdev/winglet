@@ -12,14 +12,16 @@ api.use("*", inflight (req, res, next) => {
 });
 
 // Try to send a request from another server
-api.get("/", inflight (req, res) => {
-  res.json("hello");
+api.post("/", inflight (req, res) => {
+  res.status(200).json("hello");
 });
 
 api.listen(8080);
 
 test "example" {
-  let response = http.get("http://localhost:8080/");
+  let response = http.post("http://localhost:8080/");
 
   assert(response.headers.get("access-control-allow-origin") == "*");
+
+  // there is no http.options method!
 }

@@ -37,16 +37,29 @@ pub class Cors impl middleware.IMiddleware {
 
     res.header("Access-Control-Allow-Methods", allowMethods);
 
-    if let allowHeader = this.options?.allowHeaders {
-      res.header("Access-Control-Allow-Headers", allowHeader.join(", "));
+    let var allowHeaders = "*";
+
+    if this.options?.allowHeaders? {
+      allowHeaders = "{this.options?.allowHeaders?.join(", ")}";
     }
 
-    if let maxAge = this.options?.maxAge {
-      res.header("Access-Control-Max-Age", "{maxAge.seconds}");
+    res.header("Access-Control-Allow-Headers", allowHeaders);
+
+    let var maxAge = "86400"; // 1 day
+
+    if this.options?.maxAge? {
+      maxAge = "{this.options?.maxAge?.seconds}";
     }
+
+    res.header("Access-Control-Max-Age", maxAge);
 
     if this.options?.allowCredentials? {
       res.header("Access-Control-Allow-Credentials", "true");
+    }
+
+    if req.method() == "OPTIONS" {
+      res.status(204);
+      return;
     }
 
     next();
