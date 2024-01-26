@@ -55,7 +55,7 @@ pub class LibSql impl database.IDatabase {
   pub inflight close() {
   }
 
-  pub inflight execute(stmt: str, args: Array<database.T>?): MutArray<MutMap<database.T?>> {
+  pub inflight execute(stmt: str, ...args: Array<Json>): Json {
     let response = http.post(
       "{this.config.url}/v2/pipeline",
       headers: {
@@ -86,14 +86,14 @@ pub class LibSql impl database.IDatabase {
         let cols: Array<database.ColumnType> = unsafeCast(result.get("cols"));
         let rows: Array<Array<database.ColumnValue>> = unsafeCast(result.get("rows"));
 
-        let dataTable = MutArray<MutMap<database.T?>>[];
+        let dataTable = MutJson[];
 
         for row in 0..rows.length {
-          let rowData = MutMap<database.T?>{};
+          let rowData = MutJson{};
           for col in 0..cols.length {
             rowData.set(cols.at(col).name, rows.at(row).at(col).value);
           }
-          dataTable.push(rowData);
+          dataTable.setAt(row, rowData);
         }
 
         return dataTable;

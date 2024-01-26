@@ -22,10 +22,14 @@ new cloud.Service(inflight () => {
     username TEXT
   );
   ");
+
+  db.execute("{""}
+  DELETE FROM users
+  ");
 });
 
 api.get("/", inflight (req, res) => {
-  let users: Json = unsafeCast(db.execute("SELECT * FROM users"));
+  let users = db.execute("SELECT * FROM users");
 
   res.json(users);
 });
@@ -33,18 +37,18 @@ api.get("/", inflight (req, res) => {
 api.get("/:userId", inflight (req, res) => {
   let userId = req.params.get("userId");
 
-  let users: Array<Json> = unsafeCast(db.execute("SELECT * FROM users WHERE id = '{userId}'"));
+  let users = db.execute("SELECT * FROM users WHERE id = '{userId}'");
 
-  if users.length == 0 {
-    res.status(404);
+  if let user = users.tryGetAt(0) {
+    res.json(user);
   } else {
-    res.json(users.at(0));
+    res.status(404);
   }
 });
 
 api.post("/", inflight (req, res) => {
   if let username = req.form.get("username") {
-    let user: Json = unsafeCast(db.execute("INSERT INTO users (username) VALUES ('{username}')"));
+    let user = db.execute("INSERT INTO users (username) VALUES ('{username}')");
 
     res.status(200);
   } else {
@@ -69,20 +73,14 @@ test "example" {
 
   response = http.get("http://localhost:8080/");
 
-  let users: Array<Json> = unsafeCast(Json.parse(response.body));
+  let users = Json.parse(response.body);
 
-  let var found = false;
+  let user = users.tryGetAt(0);
 
-  for i in 0..users.length {
-    let user = users.at(i);
+  assert(user != nil);
 
-    if user.get("username") == username {
-      found = true;
-      response = http.get("http://localhost:8080/{user.get("id").asStr()}");
-
-      assert(response.body == Json.stringify(user));
-    }
+  if let user = user {
+    response = http.get("http://localhost:8080/{user.get("id").asStr()}");
+    assert(response.body == Json.stringify(user));
   }
-
-  assert(found);
 }

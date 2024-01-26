@@ -42,8 +42,8 @@ class Counter {
   }
 
   pub inflight peek(): str {
-    let result: Array<Json> = unsafeCast(this.db.execute("SELECT * FROM counter"));
-    return result.at(0).get("value").asStr();
+    let result = this.db.execute("SELECT * FROM counter");
+    return result.getAt(0).get("value").asStr();
   }
 }
 
@@ -87,3 +87,19 @@ api.get("/", inflight (req, res) => {
 });
 
 api.listen(8080);
+
+test "counter" {
+  let var response = http.get("http://localhost:8080/peek");
+
+  assert(response.body == "0");
+
+  response = http.post("http://localhost:8080/inc");
+  response = http.get("http://localhost:8080/peek");
+
+  assert(response.body == "1");
+
+  response = http.post("http://localhost:8080/dec");
+  response = http.get("http://localhost:8080/peek");
+
+  assert(response.body == "0");
+}

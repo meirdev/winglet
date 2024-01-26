@@ -31,7 +31,7 @@ pub inflight class QueryResult {
 pub interface Client {
   inflight connect();
   inflight end();
-  inflight query(stmt: str, args: Array<database.T>?): QueryResult;
+  inflight query(stmt: str, args: Array<Json>?): QueryResult;
 }
 
 pub class Pg {
@@ -60,11 +60,11 @@ pub class PostgreSQL impl database.IDatabase {
     this._client?.end();
   }
 
-  pub inflight execute(stmt: str, args: Array<database.T>?): MutArray<MutMap<database.T?>> {
+  pub inflight execute(stmt: str, ...args: Array<Json>): Json {
     let result = this._client?.query(stmt, args);
 
     log("execute: result={Json.stringify(result)}");
 
-    return unsafeCast(result?.rows);
+    return result?.rows;
   }
 }
