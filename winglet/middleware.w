@@ -7,5 +7,5 @@ pub struct Middleware {
 }
 
 pub interface IMiddleware {
-  inflight handler(req: request.Request, res: response.Response, next: inflight (): void);
+  inflight handler(req: request.Request, res: response.Response, next: inflight (): void): void;
 }

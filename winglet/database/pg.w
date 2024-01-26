@@ -29,8 +29,8 @@ pub inflight class QueryResult {
 }
 
 pub interface Client {
-  inflight connect();
-  inflight end();
+  inflight connect(): void;
+  inflight end(): void;
   inflight query(stmt: str, args: Array<Json>?): QueryResult;
 }
 

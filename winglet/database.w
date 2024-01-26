@@ -9,7 +9,7 @@ pub struct ColumnValue {
 }
 
 pub interface IDatabase {
-  inflight connect();
-  inflight close();
+  inflight connect(): void;
+  inflight close(): void;
   inflight execute(stmt: str, ...args: Array<Json>): Json;
 }

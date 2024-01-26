@@ -1,8 +1,8 @@
 bring cloud;
 
 pub interface IStream {
-  inflight write(s: str);
-  inflight end(); 
+  inflight write(s: str): void;
+  inflight end(): void;
 }
 
 pub class HttpResponseStream {

@@ -4,9 +4,9 @@ pub interface IMultiMap {
   inflight getAll(name: str): Array<str>;
   inflight keys(): Array<str>; // Iterator
   inflight values(): Array<str>; // Iterator
-  inflight set(name: str, value: str);
-  inflight append(name: str, value: str);
-  inflight delete(name: str, value: str?);
+  inflight set(name: str, value: str): void;
+  inflight append(name: str, value: str): void;
+  inflight delete(name: str, value: str?): void;
   inflight has(name: str, value: str?): bool;
   inflight entries(): Array<Array<str>>; // Iterator
 }
